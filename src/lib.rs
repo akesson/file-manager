@@ -1,6 +1,7 @@
 mod actions;
 mod error;
 mod helpers;
+mod proto;
 
 #[cfg(feature = "tempdir")]
 pub use helpers::tempdir::TempDir;
