@@ -2,9 +2,7 @@ use anyhow::Context;
 use camino::{Utf8Path, Utf8PathBuf};
 use walkdir::IntoIter;
 
-use crate::FileManagerError;
-
-use super::PathExt;
+use crate::{helpers::PathExt, FileManagerError};
 
 pub struct DirIter {
     pub(crate) root: Utf8PathBuf,

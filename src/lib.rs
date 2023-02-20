@@ -1,7 +1,7 @@
 mod actions;
 mod error;
 mod helpers;
-mod proto;
+mod lister;
 
 #[cfg(feature = "tempdir")]
 pub use helpers::tempdir::TempDir;
@@ -9,10 +9,11 @@ pub use helpers::tempdir::TempDir;
 // re-exports
 pub use camino::{Utf8Path, Utf8PathBuf};
 
+pub use actions::{PathCopy, PathDelete, PathList, PathRead, PathResolve, PathWrite};
 pub use error::FileManagerError;
 
-pub use actions::{PathCopy, PathDelete, PathList, PathRead, PathResolve, PathWrite};
 use helpers::env;
+use lister::*;
 
 pub type Result<T> = std::result::Result<T, FileManagerError>;
 
@@ -20,6 +21,7 @@ pub mod prelude {
     pub use crate::actions::{
         PathBase, PathCopy, PathDelete, PathList, PathRead, PathResolve, PathWrite,
     };
+    pub use crate::lister::Lister;
 }
 
 #[cfg(feature = "ascii")]
