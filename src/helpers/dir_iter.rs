@@ -62,7 +62,7 @@ impl Iterator for DirIter {
         while let Some(next) = self.dir_iter.next() {
             match next.map(|p| DirEntry::new(p, &self.root)) {
                 Ok(Ok(entry)) => {
-                    if self.filter.is_match(&entry) {
+                    if self.filter.is_match(&entry.relative_path().as_str()) {
                         return Some(Ok(entry));
                     } else {
                         // println!("next: {:?}", entry.relative_path());

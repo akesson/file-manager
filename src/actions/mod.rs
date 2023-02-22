@@ -1,6 +1,5 @@
 mod copy;
 mod delete;
-mod list;
 mod read;
 mod resolve;
 mod write;
@@ -8,7 +7,6 @@ mod write;
 use camino::{Utf8Path, Utf8PathBuf};
 pub use copy::PathCopy;
 pub use delete::PathDelete;
-pub use list::PathList;
 pub use read::PathRead;
 pub use resolve::PathResolve;
 pub use write::PathWrite;

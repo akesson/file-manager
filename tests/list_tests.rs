@@ -19,7 +19,7 @@ fn list_all() -> Result<(), String> {
     populate_lib_dirs(&workspace, "my_crate_1", "mymod1")?;
     populate_lib_dirs(&workspace, "my_crate_2", "mymod2")?;
 
-    insta::assert_snapshot!(dir.list().ascii().unwrap(), @r###"
+    insta::assert_snapshot!(dir.dir_list().ascii().unwrap(), @r###"
     myfolder
      └─ workspace
          ├─ my_crate_1
@@ -49,7 +49,7 @@ fn list_all() -> Result<(), String> {
     "###);
 
     let found = dir
-        .list()
+        .dir_list()
         .exclude("**/my_crate_1.a")?
         .include("**/target/**")?
         .into_iter()
@@ -65,7 +65,7 @@ fn list_all() -> Result<(), String> {
     "###);
 
     let found = dir
-        .list()
+        .dir_list()
         .include("*.rs")?
         .collect(|x| format!("{} {}", x.depth(), x.relative_path()))?
         .join("\n");
