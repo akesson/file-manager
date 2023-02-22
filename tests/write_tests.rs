@@ -25,7 +25,7 @@ fn delete() -> Result<(), String> {
     dir.join("dir-2/file-1.txt").write().string("").unwrap();
     dir.join("dir-2/file-2.txt").write().string("")?;
 
-    insta::assert_snapshot!(dir.dir_list().ascii()?, @r###"
+    insta::assert_snapshot!(dir.dir_list().to_ascii()?, @r###"
     base
      ├─ dir-2
      │   ├─ file-2.txt
@@ -37,7 +37,7 @@ fn delete() -> Result<(), String> {
 
     dir.join("dir-1").delete().dir().all()?;
 
-    insta::assert_snapshot!(dir.dir_list().ascii()?, @r###"
+    insta::assert_snapshot!(dir.dir_list().to_ascii()?, @r###"
     base
      └─ dir-2
          ├─ file-2.txt
@@ -47,14 +47,14 @@ fn delete() -> Result<(), String> {
     dir.join("dir-2/file-2.txt").delete().file()?;
     dir.join("dir-2/file-1.txt").delete().file()?;
 
-    insta::assert_snapshot!(dir.dir_list().ascii()?, @r###"
+    insta::assert_snapshot!(dir.dir_list().to_ascii()?, @r###"
     base
      └─ dir-2
     "###);
 
     dir.join("dir-2").delete().dir().empty()?;
 
-    insta::assert_snapshot!(dir.dir_list().ascii()?, @r###"
+    insta::assert_snapshot!(dir.dir_list().to_ascii()?, @r###"
     base
     "###);
 

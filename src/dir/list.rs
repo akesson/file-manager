@@ -42,7 +42,7 @@ impl FilterOptionMut for ListOptions {
 
 impl Build<ListOptions> {
     #[cfg(feature = "ascii")]
-    pub fn ascii(self) -> crate::Result<String> {
+    pub fn to_ascii(self) -> crate::Result<String> {
         let tree = list_ascii(&self.path).map_err(|source| {
             crate::FileManagerError::new(
                 format!("Could not create ascii listing of {}", self.path),
@@ -52,14 +52,14 @@ impl Build<ListOptions> {
         Ok(tree.to_string())
     }
 
-    pub fn paths(self) -> crate::Result<Vec<Utf8PathBuf>> {
+    pub fn to_paths(self) -> crate::Result<Vec<Utf8PathBuf>> {
         Ok(self
             .into_iter()
             .map(|entry| entry.map(|e| e.relative_path().to_path_buf()))
             .collect::<crate::Result<Vec<Utf8PathBuf>>>()?)
     }
 
-    pub fn collect<F, T>(self, op: F) -> crate::Result<Vec<T>>
+    pub fn to_vec<F, T>(self, op: F) -> crate::Result<Vec<T>>
     where
         F: Fn(crate::helpers::DirEntry) -> T,
     {

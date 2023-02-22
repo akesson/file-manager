@@ -25,13 +25,13 @@ where
     T: FilterOptionMut,
 {
     #[cfg(feature = "glob")]
-    pub fn exclude(mut self, glob: &str) -> crate::Result<Self> {
+    pub fn filter_exclude(mut self, glob: &str) -> crate::Result<Self> {
         self.build.filter_options().glob.exclude.add(glob)?;
         Ok(self)
     }
 
     #[cfg(feature = "glob")]
-    pub fn include(mut self, glob: &str) -> crate::Result<Self> {
+    pub fn filter_include(mut self, glob: &str) -> crate::Result<Self> {
         self.build.filter_options().glob.include.add(glob)?;
         Ok(self)
     }
