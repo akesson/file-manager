@@ -1,6 +1,8 @@
 use camino::{Utf8Path, Utf8PathBuf};
 
-use super::Build;
+use crate::helpers::DirIter;
+
+use super::{Build, FilterOptions};
 
 pub struct DirOptions {
     path: Utf8PathBuf,
@@ -29,6 +31,23 @@ impl DirOptions {
             .same_file_system(self.same_file_system)
             .into_iter()
     }
+
+    fn walkdir_iter(&self) -> walkdir::IntoIter {
+        walkdir::WalkDir::new(&self.path)
+            .max_depth(self.max_depth)
+            .min_depth(self.min_depth)
+            .follow_links(self.follow_links)
+            .same_file_system(self.same_file_system)
+            .into_iter()
+    }
+
+    pub fn filtered_iter(&self, filters: FilterOptions) -> DirIter {
+        DirIter {
+            root: self.path.clone(),
+            dir_iter: self.walkdir_iter(),
+            filter: filters.glob,
+        }
+    }
 }
 
 impl IntoIterator for DirOptions {
@@ -36,12 +55,7 @@ impl IntoIterator for DirOptions {
     type IntoIter = walkdir::IntoIter;
 
     fn into_iter(self) -> Self::IntoIter {
-        walkdir::WalkDir::new(&self.path)
-            .max_depth(self.max_depth)
-            .min_depth(self.min_depth)
-            .follow_links(self.follow_links)
-            .same_file_system(self.same_file_system)
-            .into_iter()
+        self.walkdir_iter()
     }
 }
 

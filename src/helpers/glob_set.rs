@@ -1,6 +1,7 @@
 use crate::FileManagerError;
 use anyhow::anyhow;
 
+#[derive(Clone)]
 pub struct GlobSet {
     name: String,
     patterns: Vec<globset::Glob>,

@@ -1,3 +1,5 @@
+mod dest_dir;
+mod dest_file;
 mod dir_iter;
 pub mod env;
 mod file;
@@ -12,9 +14,11 @@ mod glob_set;
 #[cfg(feature = "tempdir")]
 pub mod tempdir;
 
+pub use dest_dir::{DestinationDirOptions, DirOption};
+pub use dest_file::{DestinationFileOptions, FileOption};
 pub use dir_iter::{DirEntry, DirIter};
 pub use file::FileExt;
-pub use path::{PathExt, Utf8PathExt};
+pub use path::{PathExt, Utf8PathBufExt, Utf8PathExt};
 
 #[cfg(feature = "ascii")]
 pub use ascii_tree::Tree;

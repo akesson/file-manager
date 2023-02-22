@@ -2,7 +2,7 @@ use std::error::Error;
 
 pub struct FileManagerError {
     message: String,
-    source: anyhow::Error,
+    source: Option<anyhow::Error>,
 }
 
 impl std::fmt::Display for FileManagerError {
@@ -41,10 +41,16 @@ impl std::fmt::Display for FileManagerError {
 impl std::fmt::Debug for FileManagerError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if f.alternate() {
-            f.debug_struct("FileManagerError")
-                .field("message", &self.message)
-                .field("source", &self.source.to_string())
-                .finish()
+            if let Some(source) = self.source() {
+                f.debug_struct("FileManagerError")
+                    .field("message", &self.message)
+                    .field("source", &source.to_string())
+                    .finish()
+            } else {
+                f.debug_struct("FileManagerError")
+                    .field("message", &self.message)
+                    .finish()
+            }
         } else {
             // this is what is output when doing an .unwrap() on a Result
             f.write_str(&format!("⏎\n{self}"))
@@ -54,7 +60,10 @@ impl std::fmt::Debug for FileManagerError {
 
 impl std::error::Error for FileManagerError {
     fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
-        Some(self.source.as_ref())
+        match self.source.as_ref() {
+            Some(source) => Some(source.as_ref()),
+            None => None,
+        }
     }
 }
 
@@ -62,7 +71,19 @@ impl FileManagerError {
     pub fn new(message: impl AsRef<str>, source: anyhow::Error) -> Self {
         Self {
             message: message.as_ref().to_string(),
-            source,
+            source: Some(source),
+        }
+    }
+}
+
+impl<T> From<T> for FileManagerError
+where
+    T: AsRef<str>,
+{
+    fn from(message: T) -> Self {
+        Self {
+            message: message.as_ref().to_string(),
+            source: None,
         }
     }
 }

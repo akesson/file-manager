@@ -2,7 +2,7 @@ use anyhow::Context;
 use camino::{Utf8Path, Utf8PathBuf};
 use std::path::Path;
 
-use crate::{helpers::Utf8PathExt, FileManagerError};
+use crate::{helpers::Utf8PathBufExt, FileManagerError};
 
 pub trait PathResolve {
     /// If the path:

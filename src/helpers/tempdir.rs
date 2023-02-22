@@ -3,7 +3,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 
 use crate::FileManagerError;
 
-use super::Utf8PathExt;
+use super::Utf8PathBufExt;
 
 pub struct TempDir {
     // keep a handle, because the tempdir is deleted when the handle is dropped

@@ -41,6 +41,11 @@ impl FilterOptionMut for ListOptions {
 }
 
 impl Build<ListOptions> {
+    pub fn debug(mut self) -> Self {
+        self.build.filter_options.glob.debug = true;
+        self
+    }
+
     #[cfg(feature = "ascii")]
     pub fn to_ascii(self) -> crate::Result<String> {
         let tree = list_ascii(&self.path).map_err(|source| {
@@ -75,11 +80,9 @@ impl IntoIterator for Build<ListOptions> {
     type IntoIter = crate::helpers::DirIter;
 
     fn into_iter(self) -> DirIter {
-        DirIter {
-            root: self.path,
-            dir_iter: self.build.dir_options.into_iter(),
-            filter: self.build.filter_options.glob,
-        }
+        self.build
+            .dir_options
+            .filtered_iter(self.build.filter_options)
     }
 }
 

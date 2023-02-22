@@ -56,6 +56,7 @@ impl std::ops::Deref for DirEntry {
 }
 
 impl Iterator for DirIter {
+    // using crate::Result as the iterator is user facing
     type Item = crate::Result<DirEntry>;
 
     fn next(&mut self) -> Option<Self::Item> {

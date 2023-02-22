@@ -1,9 +1,13 @@
 use anyhow::{bail, Context};
-use std::{fs::File, path::Path};
+use std::{
+    fs::{File, OpenOptions},
+    path::Path,
+};
 
 pub trait FileExt {
     fn open_read(path: impl AsRef<Path>) -> anyhow::Result<File>;
     fn open_write(path: impl AsRef<Path>, overwrite: bool) -> anyhow::Result<File>;
+    fn open_append(path: impl AsRef<Path>) -> anyhow::Result<File>;
 }
 
 impl FileExt for File {
@@ -28,5 +32,11 @@ impl FileExt for File {
             File::create(path)
                 .with_context(|| format!("could not create file {}", path.to_string_lossy()))
         }
+    }
+    fn open_append(path: impl AsRef<Path>) -> anyhow::Result<File> {
+        OpenOptions::new()
+            .append(true)
+            .open(&path)
+            .with_context(|| format!("could not open file for appending: {:?}", path.as_ref()))
     }
 }

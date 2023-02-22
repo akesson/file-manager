@@ -2,6 +2,7 @@ use crate::helpers::GlobFilter;
 
 use super::Build;
 
+#[derive(Clone)]
 pub struct FilterOptions {
     #[cfg(feature = "glob")]
     pub(crate) glob: GlobFilter,

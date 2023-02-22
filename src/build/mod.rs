@@ -1,7 +1,9 @@
+mod destination;
 mod dir;
 mod filter;
 
 use camino::{Utf8Path, Utf8PathBuf};
+pub use destination::{Destination, DestinationMut};
 pub use dir::{DirOptions, DirOptionsMut};
 pub use filter::{FilterOptionMut, FilterOptions};
 
