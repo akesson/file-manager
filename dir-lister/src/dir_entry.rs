@@ -1,3 +1,4 @@
+use crate::ctx_depth_path;
 use anyhow::Result;
 use camino::{Utf8Path, Utf8PathBuf};
 use std::fmt;
@@ -199,10 +200,10 @@ impl WalkDirEntry {
         let path = ent.path();
         let ty = ent
             .file_type()
-            .map_err(|err| DirError::from_path(depth, path.clone(), err))?;
+            .context(ctx_depth_path(depth, path.clone()))?;
         let md = ent
             .metadata()
-            .map_err(|err| DirError::from_path(depth, path.clone(), err))?;
+            .context(ctx_depth_path(depth, path.clone()))?;
         Ok(WalkDirEntry {
             path: path,
             ty: ty,
@@ -217,8 +218,6 @@ impl WalkDirEntry {
         use std::os::unix::fs::DirEntryExt;
 
         use anyhow::{anyhow, Context};
-
-        use crate::ctx_depth_path;
 
         let path = Utf8PathBuf::from_path_buf(ent.path())
             .map_err(|p| anyhow!("Invalid UTF-8 path: {:?}", p))?;
@@ -235,9 +234,7 @@ impl WalkDirEntry {
 
     #[cfg(not(any(unix, windows)))]
     pub(crate) fn from_entry(depth: usize, ent: &fs::DirEntry) -> Result<WalkDirEntry> {
-        let ty = ent
-            .file_type()
-            .map_err(|err| DirError::from_path(depth, ent.path(), err))?;
+        let ty = ent.file_type().context(ctx_depth_path(depth, ent.path()))?;
         Ok(WalkDirEntry {
             path: ent.path(),
             ty: ty,
@@ -247,11 +244,13 @@ impl WalkDirEntry {
     }
 
     #[cfg(windows)]
-    pub(crate) fn from_path(depth: usize, pb: PathBuf, follow: bool) -> Result<WalkDirEntry> {
+    pub(crate) fn from_path(depth: usize, pb: Utf8PathBuf, follow: bool) -> Result<WalkDirEntry> {
+        use crate::ctx_depth_path;
+
         let md = if follow {
-            fs::metadata(&pb).map_err(|err| DirError::from_path(depth, pb.clone(), err))?
+            fs::metadata(&pb).context(ctx_depth_path(depth, pb.clone()))?
         } else {
-            fs::symlink_metadata(&pb).map_err(|err| DirError::from_path(depth, pb.clone(), err))?
+            fs::symlink_metadata(&pb).context(ctx_depth_path(depth, pb.clone()))?
         };
         Ok(WalkDirEntry {
             path: pb,
@@ -268,8 +267,6 @@ impl WalkDirEntry {
 
         use anyhow::Context;
 
-        use crate::ctx_depth_path;
-
         let md = if follow {
             fs::metadata(&pb).context(ctx_depth_path(depth, &pb))?
         } else {
@@ -285,11 +282,11 @@ impl WalkDirEntry {
     }
 
     #[cfg(not(any(unix, windows)))]
-    pub(crate) fn from_path(depth: usize, pb: PathBuf, follow: bool) -> Result<WalkDirEntry> {
+    pub(crate) fn from_path(depth: usize, pb: Utf8PathBuf, follow: bool) -> Result<WalkDirEntry> {
         let md = if follow {
-            fs::metadata(&pb).map_err(|err| DirError::from_path(depth, pb.clone(), err))?
+            fs::metadata(&pb)..context(ctx_depth_path(depth, pb.clone()))?;
         } else {
-            fs::symlink_metadata(&pb).map_err(|err| DirError::from_path(depth, pb.clone(), err))?
+            fs::symlink_metadata(&pb).context(ctx_depth_path(depth, path.clone()))?;
         };
         Ok(WalkDirEntry {
             path: pb,
