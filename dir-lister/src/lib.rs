@@ -5,7 +5,10 @@ mod dir_entry;
 mod dir_iter;
 mod dir_lister;
 
-pub use crate::dir_entry::{DirEntry, DirEntryExt};
+#[cfg(unix)]
+pub use crate::dir_entry::DirEntryExt;
+
+pub use crate::dir_entry::DirEntry;
 pub use crate::dir_iter::{DirIter, FilterEntry};
 pub use crate::dir_lister::DirLister;
 use camino::Utf8Path;

@@ -152,7 +152,7 @@ impl Dir {
     /// Create a file symlink to the given src with the given link name.
     pub fn symlink_file<P1: AsRef<Utf8Path>, P2: AsRef<Utf8Path>>(&self, src: P1, link_name: P2) {
         #[cfg(windows)]
-        fn imp(src: &Path, link_name: &Path) -> io::Result<()> {
+        fn imp(src: &Utf8Path, link_name: &Utf8Path) -> io::Result<()> {
             use std::os::windows::fs::symlink_file;
             symlink_file(src, link_name)
         }
@@ -179,7 +179,7 @@ impl Dir {
     /// Create a directory symlink to the given src with the given link name.
     pub fn symlink_dir<P1: AsRef<Utf8Path>, P2: AsRef<Utf8Path>>(&self, src: P1, link_name: P2) {
         #[cfg(windows)]
-        fn imp(src: &Path, link_name: &Path) -> io::Result<()> {
+        fn imp(src: &Utf8Path, link_name: &Utf8Path) -> io::Result<()> {
             use std::os::windows::fs::symlink_dir;
             symlink_dir(src, link_name)
         }

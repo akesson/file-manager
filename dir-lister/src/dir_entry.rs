@@ -1,5 +1,5 @@
-use crate::ctx_depth_path;
-use anyhow::Result;
+use crate::{ctx_dent, ctx_depth_path};
+use anyhow::{Context, Result};
 use camino::{Utf8Path, Utf8PathBuf};
 use std::fmt;
 use std::fs::{self, FileType};
@@ -132,15 +132,11 @@ impl DirEntry {
         } else {
             Ok(self.metadata.clone())
         }
-        .map_err(|err| DirError::from_entry(self, err))
+        .context(ctx_dent(&self))
     }
 
     #[cfg(not(windows))]
     fn metadata_internal(&self) -> Result<fs::Metadata> {
-        use anyhow::Context;
-
-        use crate::ctx_dent;
-
         if self.follow_link {
             fs::metadata(&self.path)
         } else {
@@ -245,8 +241,6 @@ impl DirEntry {
 
     #[cfg(windows)]
     pub(crate) fn from_path(depth: usize, pb: Utf8PathBuf, follow: bool) -> Result<DirEntry> {
-        use crate::ctx_depth_path;
-
         let md = if follow {
             fs::metadata(&pb).context(ctx_depth_path(depth, pb.clone()))?
         } else {
