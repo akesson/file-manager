@@ -1,9 +1,8 @@
 use camino::{Utf8Path, Utf8PathBuf};
 
-use crate::{
-    helpers::DirIter,
-    iters::{WalkDir, WalkDirEntry, WalkDirIter},
-};
+use dir_iter::{WalkDir, WalkDirEntry, WalkDirIter};
+
+use crate::helpers::DirIter;
 
 use super::{Build, FilterOptions};
 

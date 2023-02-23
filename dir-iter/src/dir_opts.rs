@@ -1,6 +1,3 @@
-#![deny(missing_docs)]
-#![allow(unknown_lints)]
-
 use std::cmp::Ordering;
 use std::fmt;
 use std::result;

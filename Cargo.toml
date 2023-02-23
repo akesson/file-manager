@@ -1,2 +1,10 @@
 [workspace]
-members = ["file-manager"]
+members = ["dir-iter"]
+# file-manager is temporarily excluded from the workspace
+# until dir-iter is finished
+exclude = ["file-manager"]
+
+# dependencies used by all members
+[workspace.dependencies]
+camino = "1.1"
+anyhow = "1.0"

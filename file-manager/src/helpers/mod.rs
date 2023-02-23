@@ -16,7 +16,6 @@ pub mod tempdir;
 
 pub use dest_dir::{DestinationDirOptions, DirOption};
 pub use dest_file::{DestinationFileOptions, FileOption};
-pub use dir_iter::{DirEntry, DirIter};
 pub use file::FileExt;
 pub use path::{PathExt, Utf8PathBufExt, Utf8PathExt};
 

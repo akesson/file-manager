@@ -3,7 +3,6 @@ mod build;
 mod dir;
 mod error;
 mod helpers;
-mod iters;
 
 #[cfg(feature = "tempdir")]
 pub use helpers::tempdir::TempDir;

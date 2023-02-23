@@ -1,10 +1,8 @@
 use anyhow::Context;
 use camino::{Utf8Path, Utf8PathBuf};
 
-use crate::{
-    iters::{WalkDirEntry, WalkDirIter},
-    FileManagerError,
-};
+use crate::FileManagerError;
+use dir_iter::{WalkDirEntry, WalkDirIter};
 
 pub struct DirIter {
     pub(crate) root: Utf8PathBuf,

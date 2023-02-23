@@ -138,7 +138,7 @@ impl WalkDirEntry {
     fn metadata_internal(&self) -> Result<fs::Metadata> {
         use anyhow::Context;
 
-        use crate::iters::dir::ctx_dent;
+        use crate::ctx_dent;
 
         if self.follow_link {
             fs::metadata(&self.path)
@@ -218,7 +218,7 @@ impl WalkDirEntry {
 
         use anyhow::{anyhow, Context};
 
-        use crate::iters::dir::ctx_depth_path;
+        use crate::ctx_depth_path;
 
         let path = Utf8PathBuf::from_path_buf(ent.path())
             .map_err(|p| anyhow!("Invalid UTF-8 path: {:?}", p))?;
@@ -268,7 +268,7 @@ impl WalkDirEntry {
 
         use anyhow::Context;
 
-        use crate::iters::dir::ctx_depth_path;
+        use crate::ctx_depth_path;
 
         let md = if follow {
             fs::metadata(&pb).context(ctx_depth_path(depth, &pb))?

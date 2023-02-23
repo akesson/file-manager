@@ -5,12 +5,9 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::result;
 
-use camino::Utf8Path;
-use camino::Utf8PathBuf;
-
-use crate::helpers::Utf8PathBufExt;
-
 use super::super::WalkDirEntry;
+use anyhow::anyhow;
+use camino::{Utf8Path, Utf8PathBuf};
 
 /// Create an error from a format!-like syntax.
 #[macro_export]
@@ -90,10 +87,11 @@ pub struct Dir {
 
 impl Dir {
     /// Create a new empty temporary directory.
-    pub fn tmp() -> Dir {
-        let dir = TempDir::new().unwrap();
-        let root = Utf8PathBuf::from_path(dir.path()).unwrap();
-        Dir { _dir: dir, root }
+    pub fn tmp() -> anyhow::Result<Dir> {
+        let dir = TempDir::new().map_err(|e| anyhow!("failed to create temp dir: {}", e))?;
+        let root = Utf8PathBuf::from_path_buf(dir.path().to_owned())
+            .map_err(|path| anyhow!("could not convert path to Utf8 {:?}", path))?;
+        Ok(Dir { _dir: dir, root })
     }
 
     /// Return the path to this directory.

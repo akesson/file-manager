@@ -1,9 +1,6 @@
+use crate::build::{Build, DirOptions, DirOptionsMut, FilterOptionMut, FilterOptions, PathNew};
 use camino::{Utf8Path, Utf8PathBuf};
-
-use crate::{
-    build::{Build, DirOptions, DirOptionsMut, FilterOptionMut, FilterOptions, PathNew},
-    helpers::DirIter,
-};
+use dir_iter::DirIter;
 
 pub trait DirList {
     fn dir_list(&self) -> Build<ListOptions>;

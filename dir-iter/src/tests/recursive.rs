@@ -22,7 +22,7 @@ fn send_sync_traits() {
 
 #[test]
 fn empty() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     let wd = WalkDir::new(dir.path());
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
@@ -38,7 +38,7 @@ fn empty() {
 
 #[test]
 fn empty_follow() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     let wd = WalkDir::new(dir.path()).follow_links(true);
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
@@ -54,7 +54,7 @@ fn empty_follow() {
 
 #[test]
 fn empty_file() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.touch("a");
 
     let wd = WalkDir::new(dir.path().join("a"));
@@ -72,7 +72,7 @@ fn empty_file() {
 
 #[test]
 fn empty_file_follow() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.touch("a");
 
     let wd = WalkDir::new(dir.path().join("a")).follow_links(true);
@@ -90,7 +90,7 @@ fn empty_file_follow() {
 
 #[test]
 fn one_dir() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("a");
 
     let wd = WalkDir::new(dir.path());
@@ -108,7 +108,7 @@ fn one_dir() {
 
 #[test]
 fn one_file() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.touch("a");
 
     let wd = WalkDir::new(dir.path());
@@ -126,7 +126,7 @@ fn one_file() {
 
 #[test]
 fn one_dir_one_file() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("foo");
     dir.touch("foo/a");
 
@@ -144,7 +144,7 @@ fn one_dir_one_file() {
 
 #[test]
 fn many_files() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("foo");
     dir.touch_all(&["foo/a", "foo/b", "foo/c"]);
 
@@ -164,7 +164,7 @@ fn many_files() {
 
 #[test]
 fn many_dirs() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("foo/a");
     dir.mkdirp("foo/b");
     dir.mkdirp("foo/c");
@@ -185,7 +185,7 @@ fn many_dirs() {
 
 #[test]
 fn many_mixed() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("foo/a");
     dir.mkdirp("foo/c");
     dir.mkdirp("foo/e");
@@ -211,7 +211,7 @@ fn many_mixed() {
 #[test]
 fn nested() {
     let nested = Utf8PathBuf::from("a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y/z");
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp(&nested);
     dir.touch(nested.join("A"));
 
@@ -255,7 +255,7 @@ fn nested() {
 #[test]
 fn nested_small_max_open() {
     let nested = Utf8PathBuf::from("a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y/z");
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp(&nested);
     dir.touch(nested.join("A"));
 
@@ -298,7 +298,7 @@ fn nested_small_max_open() {
 
 #[test]
 fn siblings() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("foo");
     dir.mkdirp("bar");
     dir.touch_all(&["foo/a", "foo/b"]);
@@ -322,7 +322,7 @@ fn siblings() {
 
 #[test]
 fn sym_root_file_nofollow() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.touch("a");
     dir.symlink_file("a", "a-link");
 
@@ -353,7 +353,7 @@ fn sym_root_file_nofollow() {
 
 #[test]
 fn sym_root_file_follow() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.touch("a");
     dir.symlink_file("a", "a-link");
 
@@ -383,7 +383,7 @@ fn sym_root_file_follow() {
 
 #[test]
 fn sym_root_dir_nofollow() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("a");
     dir.symlink_dir("a", "a-link");
     dir.touch("a/zzz");
@@ -419,7 +419,7 @@ fn sym_root_dir_nofollow() {
 
 #[test]
 fn sym_root_dir_follow() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("a");
     dir.symlink_dir("a", "a-link");
     dir.touch("a/zzz");
@@ -455,7 +455,7 @@ fn sym_root_dir_follow() {
 
 #[test]
 fn sym_file_nofollow() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.touch("a");
     dir.symlink_file("a", "a-link");
 
@@ -491,7 +491,7 @@ fn sym_file_nofollow() {
 
 #[test]
 fn sym_file_follow() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.touch("a");
     dir.symlink_file("a", "a-link");
 
@@ -527,7 +527,7 @@ fn sym_file_follow() {
 
 #[test]
 fn sym_dir_nofollow() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("a");
     dir.symlink_dir("a", "a-link");
     dir.touch("a/zzz");
@@ -564,7 +564,7 @@ fn sym_dir_nofollow() {
 
 #[test]
 fn sym_dir_follow() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("a");
     dir.symlink_dir("a", "a-link");
     dir.touch("a/zzz");
@@ -607,7 +607,7 @@ fn sym_dir_follow() {
 
 #[test]
 fn sym_noloop() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("a/b/c");
     dir.symlink_dir("a", "a/b/c/a-link");
 
@@ -621,7 +621,7 @@ fn sym_noloop() {
 
 #[test]
 fn sym_self_loop_no_error() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.symlink_file("a", "a");
 
     let wd = WalkDir::new(dir.path());
@@ -646,7 +646,7 @@ fn sym_self_loop_no_error() {
 
 #[test]
 fn min_depth_1() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("a/b");
 
     let wd = WalkDir::new(dir.path()).min_depth(1);
@@ -659,7 +659,7 @@ fn min_depth_1() {
 
 #[test]
 fn min_depth_2() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("a/b");
 
     let wd = WalkDir::new(dir.path()).min_depth(2);
@@ -672,7 +672,7 @@ fn min_depth_2() {
 
 #[test]
 fn max_depth_0() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("a/b");
 
     let wd = WalkDir::new(dir.path()).max_depth(0);
@@ -685,7 +685,7 @@ fn max_depth_0() {
 
 #[test]
 fn max_depth_1() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("a/b");
 
     let wd = WalkDir::new(dir.path()).max_depth(1);
@@ -698,7 +698,7 @@ fn max_depth_1() {
 
 #[test]
 fn max_depth_2() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("a/b");
 
     let wd = WalkDir::new(dir.path()).max_depth(2);
@@ -716,7 +716,7 @@ fn max_depth_2() {
 // FIXME: This test seems wrong. It should return nothing!
 #[test]
 fn min_max_depth_diff_nada() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("a/b/c");
 
     let wd = WalkDir::new(dir.path()).min_depth(3).max_depth(2);
@@ -729,7 +729,7 @@ fn min_max_depth_diff_nada() {
 
 #[test]
 fn min_max_depth_diff_0() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("a/b/c");
 
     let wd = WalkDir::new(dir.path()).min_depth(2).max_depth(2);
@@ -742,7 +742,7 @@ fn min_max_depth_diff_0() {
 
 #[test]
 fn min_max_depth_diff_1() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("a/b/c");
 
     let wd = WalkDir::new(dir.path()).min_depth(1).max_depth(2);
@@ -755,7 +755,7 @@ fn min_max_depth_diff_1() {
 
 #[test]
 fn contents_first() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.touch("a");
 
     let wd = WalkDir::new(dir.path()).contents_first(true);
@@ -768,7 +768,7 @@ fn contents_first() {
 
 #[test]
 fn skip_current_dir() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("foo/bar/baz");
     dir.mkdirp("quux");
 
@@ -794,7 +794,7 @@ fn skip_current_dir() {
 
 #[test]
 fn filter_entry() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("foo/bar/baz/abc");
     dir.mkdirp("quux");
 
@@ -815,7 +815,7 @@ fn filter_entry() {
 
 #[test]
 fn sort_by() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("foo/bar/baz/abc");
     dir.mkdirp("quux");
 
@@ -836,7 +836,7 @@ fn sort_by() {
 
 #[test]
 fn sort_by_key() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("foo/bar/baz/abc");
     dir.mkdirp("quux");
 
@@ -857,7 +857,7 @@ fn sort_by_key() {
 
 #[test]
 fn sort_by_file_name() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("foo/bar/baz/abc");
     dir.mkdirp("quux");
 
@@ -878,7 +878,7 @@ fn sort_by_file_name() {
 
 #[test]
 fn sort_max_open() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("foo/bar/baz/abc");
     dir.mkdirp("quux");
 
@@ -911,7 +911,7 @@ fn same_file_system() {
         return;
     }
 
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.touch("a");
     dir.symlink_dir("/sys", "sys-link");
 
@@ -947,7 +947,7 @@ fn same_file_system() {
 // See: https://github.com/BurntSushi/walkdir/issues/118
 #[test]
 fn regression_skip_current_dir() {
-    let dir = Dir::tmp();
+    let dir = Dir::tmp().unwrap();
     dir.mkdirp("foo/a/b");
     dir.mkdirp("foo/1/2");
 

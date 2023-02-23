@@ -13,8 +13,10 @@ tempdir = ["dep:tempfile"]
 glob = ["dep:globset"]
 
 [dependencies]
-camino = "1.1"
-anyhow = "1.0"
+dir-iter = { path = "../dir-iter" }
+
+camino = { workspace = true }
+anyhow = { workspace = true }
 same-file = "1.0.1"
 
 globset = { version = "0.4", optional = true }
