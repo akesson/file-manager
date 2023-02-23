@@ -3,12 +3,12 @@ mod tests;
 
 mod dir_entry;
 mod dir_iter;
-mod dir_opts;
+mod dir_lister;
 
-pub use crate::dir_iter::{FilterEntry, WalkDirIter};
+pub use crate::dir_entry::{DirEntryExt, WalkDirEntry};
+pub use crate::dir_iter::{DirIter, FilterEntry};
+pub use crate::dir_lister::DirLister;
 use camino::Utf8Path;
-pub use dir_entry::{DirEntryExt, WalkDirEntry};
-pub use dir_opts::WalkDirOptions;
 
 use std::io;
 use std::path::Path;

@@ -1,5 +1,5 @@
 use super::{ctx_dent, ctx_depth, ctx_depth_path};
-use super::{WalkDirEntry, WalkDirOptions};
+use super::{DirLister, WalkDirEntry};
 use anyhow::{anyhow, bail, Context, Result};
 use camino::Utf8Path;
 use camino::Utf8PathBuf;
@@ -34,9 +34,9 @@ macro_rules! itry {
 /// [`WalkDir`]: struct.WalkDir.html
 /// [`.into_iter()`]: struct.WalkDir.html#into_iter.v
 #[derive(Debug)]
-pub struct WalkDirIter {
+pub struct DirIter {
     /// Options specified in the builder. Depths, max fds, etc.
-    pub(crate) opts: WalkDirOptions,
+    pub(crate) opts: DirLister,
     /// The start path.
     ///
     /// This is only `Some(...)` at the beginning. After the first iteration,
@@ -155,7 +155,7 @@ pub(crate) enum DirList {
     Closed(vec::IntoIter<Result<WalkDirEntry>>),
 }
 
-impl Iterator for WalkDirIter {
+impl Iterator for DirIter {
     type Item = Result<WalkDirEntry>;
     /// Advances the iterator and returns the next value.
     ///
@@ -212,7 +212,7 @@ impl Iterator for WalkDirIter {
     }
 }
 
-impl WalkDirIter {
+impl DirIter {
     pub fn skip_current_dir(&mut self) {
         if !self.stack_list.is_empty() {
             self.pop();
@@ -443,7 +443,7 @@ pub struct FilterEntry<I, P> {
     predicate: P,
 }
 
-impl<P> Iterator for FilterEntry<WalkDirIter, P>
+impl<P> Iterator for FilterEntry<DirIter, P>
 where
     P: FnMut(&WalkDirEntry) -> bool,
 {
@@ -472,7 +472,7 @@ where
     }
 }
 
-impl<P> FilterEntry<WalkDirIter, P>
+impl<P> FilterEntry<DirIter, P>
 where
     P: FnMut(&WalkDirEntry) -> bool,
 {

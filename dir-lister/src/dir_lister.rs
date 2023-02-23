@@ -10,7 +10,7 @@ use camino::Utf8PathBuf;
 pub use super::DirEntryExt;
 pub use super::WalkDirEntry;
 
-pub struct WalkDirOptions {
+pub struct DirLister {
     pub(crate) root: Utf8PathBuf,
     pub(crate) follow_links: bool,
     pub(crate) max_open: usize,
@@ -22,7 +22,7 @@ pub struct WalkDirOptions {
     pub(crate) same_file_system: bool,
 }
 
-impl fmt::Debug for WalkDirOptions {
+impl fmt::Debug for DirLister {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> result::Result<(), fmt::Error> {
         let sorter_str = if self.sorter.is_some() {
             // FnMut isn't `Debug`
@@ -42,7 +42,7 @@ impl fmt::Debug for WalkDirOptions {
     }
 }
 
-impl WalkDirOptions {
+impl DirLister {
     /// Create a builder for a recursive directory iterator starting at the
     /// file path `root`. If `root` is a directory, then it is the first item
     /// yielded by the iterator. If `root` is a file, then it is the first
@@ -181,13 +181,13 @@ impl WalkDirOptions {
     }
 }
 
-impl IntoIterator for WalkDirOptions {
+impl IntoIterator for DirLister {
     type Item = anyhow::Result<WalkDirEntry>;
-    type IntoIter = super::WalkDirIter;
+    type IntoIter = super::DirIter;
 
-    fn into_iter(self) -> super::WalkDirIter {
+    fn into_iter(self) -> super::DirIter {
         let start = self.root.clone();
-        super::WalkDirIter {
+        super::DirIter {
             opts: self,
             start: Some(start),
             stack_list: vec![],
