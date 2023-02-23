@@ -1,0 +1,24 @@
+[package]
+name = "file-manager"
+version = "0.1.0"
+edition = "2021"
+description = "Rust file manager working on paths directly with builder-style actions for copying, moving, deleting, and much more."
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = ["ascii", "tempdir", "glob"]
+ascii = []
+tempdir = ["dep:tempfile"]
+glob = ["dep:globset"]
+
+[dependencies]
+camino = "1.1"
+anyhow = "1.0"
+same-file = "1.0.1"
+
+globset = { version = "0.4", optional = true }
+tempfile = { version = "3.3", optional = true }
+
+[dev-dependencies]
+insta = "1.23"

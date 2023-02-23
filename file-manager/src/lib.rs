@@ -131,7 +131,7 @@ fn generate_function_hierarchy() {
         ),
     ];
 
-    let mut readme = Utf8PathBuf::from("./README.md").read().string().unwrap();
+    let mut readme = Utf8PathBuf::from("../README.md").read().string().unwrap();
 
     const SECT_START: &str = "<!-- ASCII TREE START -->\n";
     const SECT_END: &str = "\n<!-- ASCII TREE END -->";
@@ -149,7 +149,7 @@ fn generate_function_hierarchy() {
     );
     if readme[start..end] != ascii_tree {
         readme.replace_range(start..end, &ascii_tree);
-        Utf8PathBuf::from("./README.md")
+        Utf8PathBuf::from("../README.md")
             .write()
             .string(&readme)
             .unwrap();
