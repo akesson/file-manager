@@ -1,5 +1,5 @@
 use crate::{ctx_dent, ctx_depth_path};
-use anyhow::{Context, Result};
+use anyhow::{anyhow, Context, Result};
 use camino::{Utf8Path, Utf8PathBuf};
 use std::fmt;
 use std::fs::{self, FileType};
@@ -193,7 +193,8 @@ impl DirEntry {
 
     #[cfg(windows)]
     pub(crate) fn from_entry(depth: usize, ent: &fs::DirEntry) -> Result<DirEntry> {
-        let path = ent.path();
+        let path = Utf8PathBuf::from_path_buf(ent.path())
+            .map_err(|p| anyhow!("Invalid UTF-8 path: {:?}", p))?;
         let ty = ent
             .file_type()
             .context(ctx_depth_path(depth, path.clone()))?;
@@ -212,8 +213,6 @@ impl DirEntry {
     #[cfg(unix)]
     pub(crate) fn from_entry(depth: usize, ent: &fs::DirEntry) -> Result<DirEntry> {
         use std::os::unix::fs::DirEntryExt;
-
-        use anyhow::anyhow;
 
         let path = Utf8PathBuf::from_path_buf(ent.path())
             .map_err(|p| anyhow!("Invalid UTF-8 path: {:?}", p))?;
