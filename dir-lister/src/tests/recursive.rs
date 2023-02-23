@@ -38,7 +38,8 @@ fn empty() {
 #[test]
 fn empty_follow() {
     let dir = Dir::tmp().unwrap();
-    let wd = DirLister::new(dir.path()).follow_links(true);
+    let mut wd = DirLister::new(dir.path());
+    wd.follow_links(true);
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
 
@@ -74,7 +75,8 @@ fn empty_file_follow() {
     let dir = Dir::tmp().unwrap();
     dir.touch("a");
 
-    let wd = DirLister::new(dir.path().join("a")).follow_links(true);
+    let mut wd = DirLister::new(dir.path().join("a"));
+    wd.follow_links(true);
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
 
@@ -258,7 +260,8 @@ fn nested_small_max_open() {
     dir.mkdirp(&nested);
     dir.touch(nested.join("A"));
 
-    let wd = DirLister::new(dir.path()).max_open(1);
+    let mut wd = DirLister::new(dir.path());
+    wd.max_open(1);
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
 
@@ -356,7 +359,8 @@ fn sym_root_file_follow() {
     dir.touch("a");
     dir.symlink_file("a", "a-link");
 
-    let wd = DirLister::new(dir.join("a-link")).follow_links(true);
+    let mut wd = DirLister::new(dir.join("a-link"));
+    wd.follow_links(true);
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
 
@@ -423,7 +427,8 @@ fn sym_root_dir_follow() {
     dir.symlink_dir("a", "a-link");
     dir.touch("a/zzz");
 
-    let wd = DirLister::new(dir.join("a-link")).follow_links(true);
+    let mut wd = DirLister::new(dir.join("a-link"));
+    wd.follow_links(true);
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
 
@@ -494,7 +499,8 @@ fn sym_file_follow() {
     dir.touch("a");
     dir.symlink_file("a", "a-link");
 
-    let wd = DirLister::new(dir.path()).follow_links(true);
+    let mut wd = DirLister::new(dir.path());
+    wd.follow_links(true);
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
 
@@ -568,7 +574,8 @@ fn sym_dir_follow() {
     dir.symlink_dir("a", "a-link");
     dir.touch("a/zzz");
 
-    let wd = DirLister::new(dir.path()).follow_links(true);
+    let mut wd = DirLister::new(dir.path());
+    wd.follow_links(true);
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
 
@@ -648,7 +655,8 @@ fn min_depth_1() {
     let dir = Dir::tmp().unwrap();
     dir.mkdirp("a/b");
 
-    let wd = DirLister::new(dir.path()).min_depth(1);
+    let mut wd = DirLister::new(dir.path());
+    wd.min_depth(1);
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
 
@@ -661,7 +669,8 @@ fn min_depth_2() {
     let dir = Dir::tmp().unwrap();
     dir.mkdirp("a/b");
 
-    let wd = DirLister::new(dir.path()).min_depth(2);
+    let mut wd = DirLister::new(dir.path());
+    wd.min_depth(2);
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
 
@@ -674,7 +683,8 @@ fn max_depth_0() {
     let dir = Dir::tmp().unwrap();
     dir.mkdirp("a/b");
 
-    let wd = DirLister::new(dir.path()).max_depth(0);
+    let mut wd = DirLister::new(dir.path());
+    wd.max_depth(0);
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
 
@@ -687,7 +697,8 @@ fn max_depth_1() {
     let dir = Dir::tmp().unwrap();
     dir.mkdirp("a/b");
 
-    let wd = DirLister::new(dir.path()).max_depth(1);
+    let mut wd = DirLister::new(dir.path());
+    wd.max_depth(1);
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
 
@@ -700,7 +711,8 @@ fn max_depth_2() {
     let dir = Dir::tmp().unwrap();
     dir.mkdirp("a/b");
 
-    let wd = DirLister::new(dir.path()).max_depth(2);
+    let mut wd = DirLister::new(dir.path());
+    wd.max_depth(2);
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
 
@@ -718,7 +730,9 @@ fn min_max_depth_diff_nada() {
     let dir = Dir::tmp().unwrap();
     dir.mkdirp("a/b/c");
 
-    let wd = DirLister::new(dir.path()).min_depth(3).max_depth(2);
+    let mut wd = DirLister::new(dir.path());
+    wd.min_depth(3);
+    wd.max_depth(2);
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
 
@@ -731,7 +745,9 @@ fn min_max_depth_diff_0() {
     let dir = Dir::tmp().unwrap();
     dir.mkdirp("a/b/c");
 
-    let wd = DirLister::new(dir.path()).min_depth(2).max_depth(2);
+    let mut wd = DirLister::new(dir.path());
+    wd.min_depth(2);
+    wd.max_depth(2);
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
 
@@ -744,7 +760,9 @@ fn min_max_depth_diff_1() {
     let dir = Dir::tmp().unwrap();
     dir.mkdirp("a/b/c");
 
-    let wd = DirLister::new(dir.path()).min_depth(1).max_depth(2);
+    let mut wd = DirLister::new(dir.path());
+    wd.min_depth(1);
+    wd.max_depth(2);
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
 
@@ -757,7 +775,9 @@ fn contents_first() {
     let dir = Dir::tmp().unwrap();
     dir.touch("a");
 
-    let wd = DirLister::new(dir.path()).contents_first(true);
+    let mut wd = DirLister::new(dir.path());
+    wd.contents_first(true);
+
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
 
@@ -818,7 +838,8 @@ fn sort_by() {
     dir.mkdirp("foo/bar/baz/abc");
     dir.mkdirp("quux");
 
-    let wd = DirLister::new(dir.path()).sort_by(|a, b| a.file_name().cmp(b.file_name()).reverse());
+    let mut wd = DirLister::new(dir.path());
+    wd.sort_by(|a, b| a.file_name().cmp(b.file_name()).reverse());
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
 
@@ -839,7 +860,8 @@ fn sort_by_key() {
     dir.mkdirp("foo/bar/baz/abc");
     dir.mkdirp("quux");
 
-    let wd = DirLister::new(dir.path()).sort_by_key(|a| a.file_name().to_owned());
+    let mut wd = DirLister::new(dir.path());
+    wd.sort_by_key(|a| a.file_name().to_owned());
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
 
@@ -860,7 +882,8 @@ fn sort_by_file_name() {
     dir.mkdirp("foo/bar/baz/abc");
     dir.mkdirp("quux");
 
-    let wd = DirLister::new(dir.path()).sort_by_file_name();
+    let mut wd = DirLister::new(dir.path());
+    wd.sort_by_file_name();
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
 
@@ -881,9 +904,9 @@ fn sort_max_open() {
     dir.mkdirp("foo/bar/baz/abc");
     dir.mkdirp("quux");
 
-    let wd = DirLister::new(dir.path())
-        .max_open(1)
-        .sort_by(|a, b| a.file_name().cmp(b.file_name()).reverse());
+    let mut wd = DirLister::new(dir.path());
+    wd.max_open(1);
+    wd.sort_by(|a, b| a.file_name().cmp(b.file_name()).reverse());
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
 
@@ -950,7 +973,9 @@ fn regression_skip_current_dir() {
     dir.mkdirp("foo/a/b");
     dir.mkdirp("foo/1/2");
 
-    let mut wd = DirLister::new(dir.path()).max_open(1).into_iter();
+    let mut wd = DirLister::new(dir.path());
+    wd.max_open(1);
+    let mut wd = wd.into_iter();
     wd.next();
     wd.next();
     wd.next();

@@ -68,12 +68,11 @@ impl DirLister {
     /// The smallest depth is `0` and always corresponds to the path given
     /// to the `new` function on this type. Its direct descendents have depth
     /// `1`, and their descendents have depth `2`, and so on.
-    pub fn min_depth(mut self, depth: usize) -> Self {
+    pub fn min_depth(&mut self, depth: usize) {
         self.min_depth = depth;
         if self.min_depth > self.max_depth {
             self.min_depth = self.max_depth;
         }
-        self
     }
 
     /// Set the maximum depth of entries yield by the iterator.
@@ -85,12 +84,11 @@ impl DirLister {
     /// Note that this will not simply filter the entries of the iterator, but
     /// it will actually avoid descending into directories when the depth is
     /// exceeded.
-    pub fn max_depth(mut self, depth: usize) -> Self {
+    pub fn max_depth(&mut self, depth: usize) {
         self.max_depth = depth;
         if self.max_depth < self.min_depth {
             self.max_depth = self.min_depth;
         }
-        self
     }
 
     /// Follow symbolic links. By default, this is disabled.
@@ -104,9 +102,8 @@ impl DirLister {
     /// type for more details.
     ///
     /// [`DirEntry`]: struct.DirEntry.html
-    pub fn follow_links(mut self, yes: bool) -> Self {
+    pub fn follow_links(&mut self, yes: bool) {
         self.follow_links = yes;
-        self
     }
 
     /// Set the maximum number of simultaneously open file descriptors used
@@ -134,23 +131,21 @@ impl DirLister {
     /// On Windows, if `follow_links` is enabled, then this limit is not
     /// respected. In particular, the maximum number of file descriptors opened
     /// is proportional to the depth of the directory tree traversed.
-    pub fn max_open(mut self, mut n: usize) -> Self {
+    pub fn max_open(&mut self, mut n: usize) {
         if n == 0 {
             n = 1;
         }
         self.max_open = n;
-        self
     }
 
-    pub fn sort_by<F>(mut self, cmp: F) -> Self
+    pub fn sort_by<F>(&mut self, cmp: F)
     where
         F: FnMut(&DirEntry, &DirEntry) -> Ordering + Send + Sync + 'static,
     {
         self.sorter = Some(Box::new(cmp));
-        self
     }
 
-    pub fn sort_by_key<K, F>(self, mut cmp: F) -> Self
+    pub fn sort_by_key<K, F>(&mut self, mut cmp: F)
     where
         F: FnMut(&DirEntry) -> K + Send + Sync + 'static,
         K: Ord,
@@ -158,13 +153,12 @@ impl DirLister {
         self.sort_by(move |a, b| cmp(a).cmp(&cmp(b)))
     }
 
-    pub fn sort_by_file_name(self) -> Self {
+    pub fn sort_by_file_name(&mut self) {
         self.sort_by(|a, b| a.file_name().cmp(b.file_name()))
     }
 
-    pub fn contents_first(mut self, yes: bool) -> Self {
+    pub fn contents_first(&mut self, yes: bool) {
         self.contents_first = yes;
-        self
     }
 
     /// Do not cross file system boundaries.
@@ -175,9 +169,8 @@ impl DirLister {
     /// Currently, this option is only supported on Unix and Windows. If this
     /// option is used on an unsupported platform, then directory traversal
     /// will immediately return an error and will not yield any entries.
-    pub fn same_file_system(mut self, yes: bool) -> Self {
+    pub fn same_file_system(&mut self, yes: bool) {
         self.same_file_system = yes;
-        self
     }
 }
 
