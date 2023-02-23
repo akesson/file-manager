@@ -4,17 +4,14 @@ mod tests;
 mod dir_entry;
 mod dir_iter;
 mod dir_opts;
-mod error;
 
+use camino::Utf8Path;
 pub use dir_entry::{DirEntryExt, WalkDirEntry};
 pub use dir_iter::{FilterEntry, WalkDirIter};
 pub use dir_opts::{WalkDir, WalkDirOptions};
-pub use error::DirError;
 
 use std::io;
 use std::path::Path;
-
-pub type Result<T> = ::std::result::Result<T, DirError>;
 
 #[cfg(unix)]
 pub fn device_num<P: AsRef<Path>>(path: P) -> io::Result<u64> {
@@ -37,4 +34,15 @@ pub fn device_num<P: AsRef<Path>>(_: P) -> io::Result<u64> {
         io::ErrorKind::Other,
         "walkdir: same_file_system option not supported on this platform",
     ))
+}
+
+fn ctx_depth(depth: usize) -> String {
+    format!("error at depth {depth}")
+}
+fn ctx_depth_path(depth: usize, path: impl AsRef<Utf8Path>) -> String {
+    format!("error at depth {} for: {}", depth, path.as_ref())
+}
+
+fn ctx_dent(dent: &WalkDirEntry) -> String {
+    format!("error at depth {} for: {}", dent.depth(), dent.path())
 }

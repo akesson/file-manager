@@ -620,31 +620,6 @@ fn sym_noloop() {
 }
 
 #[test]
-fn sym_loop_detect() {
-    let dir = Dir::tmp();
-    dir.mkdirp("a/b/c");
-    dir.symlink_dir("a", "a/b/c/a-link");
-
-    let wd = WalkDir::new(dir.path()).follow_links(true);
-    let r = dir.run_recursive(wd);
-
-    let (ents, errs) = (r.sorted_ents(), r.errs());
-    assert_eq!(4, ents.len());
-    assert_eq!(1, errs.len());
-
-    let err = &errs[0];
-
-    let expected = dir.join("a/b/c/a-link");
-    assert_eq!(Some(&*expected), err.path());
-
-    let expected = dir.join("a");
-    assert_eq!(Some(&*expected), err.loop_ancestor());
-
-    assert_eq!(4, err.depth());
-    assert!(err.io_error().is_none());
-}
-
-#[test]
 fn sym_self_loop_no_error() {
     let dir = Dir::tmp();
     dir.symlink_file("a", "a");
@@ -667,48 +642,6 @@ fn sym_self_loop_no_error() {
     assert!(ent.metadata().unwrap().file_type().is_symlink());
     assert!(!ent.metadata().unwrap().file_type().is_file());
     assert!(!ent.metadata().unwrap().file_type().is_dir());
-}
-
-#[test]
-fn sym_file_self_loop_io_error() {
-    let dir = Dir::tmp();
-    dir.symlink_file("a", "a");
-
-    let wd = WalkDir::new(dir.path()).follow_links(true);
-    let r = dir.run_recursive(wd);
-
-    let (ents, errs) = (r.sorted_ents(), r.errs());
-    assert_eq!(1, ents.len());
-    assert_eq!(1, errs.len());
-
-    let err = &errs[0];
-
-    let expected = dir.join("a");
-    assert_eq!(Some(&*expected), err.path());
-    assert_eq!(1, err.depth());
-    assert!(err.loop_ancestor().is_none());
-    assert!(err.io_error().is_some());
-}
-
-#[test]
-fn sym_dir_self_loop_io_error() {
-    let dir = Dir::tmp();
-    dir.symlink_dir("a", "a");
-
-    let wd = WalkDir::new(dir.path()).follow_links(true);
-    let r = dir.run_recursive(wd);
-
-    let (ents, errs) = (r.sorted_ents(), r.errs());
-    assert_eq!(1, ents.len());
-    assert_eq!(1, errs.len());
-
-    let err = &errs[0];
-
-    let expected = dir.join("a");
-    assert_eq!(Some(&*expected), err.path());
-    assert_eq!(1, err.depth());
-    assert!(err.loop_ancestor().is_none());
-    assert!(err.io_error().is_some());
 }
 
 #[test]

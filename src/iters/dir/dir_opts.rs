@@ -11,10 +11,7 @@ use camino::Utf8PathBuf;
 
 #[cfg(unix)]
 pub use super::DirEntryExt;
-pub use super::DirError;
 pub use super::WalkDirEntry;
-
-pub type Result<T> = ::std::result::Result<T, DirError>;
 
 #[derive(Debug)]
 pub struct WalkDir {
@@ -195,7 +192,7 @@ impl WalkDir {
 }
 
 impl IntoIterator for WalkDir {
-    type Item = Result<WalkDirEntry>;
+    type Item = anyhow::Result<WalkDirEntry>;
     type IntoIter = super::WalkDirIter;
 
     fn into_iter(self) -> super::WalkDirIter {

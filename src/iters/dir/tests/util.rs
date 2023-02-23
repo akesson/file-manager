@@ -10,7 +10,7 @@ use camino::Utf8PathBuf;
 
 use crate::helpers::Utf8PathBufExt;
 
-use super::super::{DirError, WalkDirEntry};
+use super::super::WalkDirEntry;
 
 /// Create an error from a format!-like syntax.
 #[macro_export]
@@ -27,12 +27,12 @@ pub type Result<T> = result::Result<T, Box<dyn error::Error + Send + Sync>>;
 #[derive(Debug)]
 pub struct RecursiveResults {
     ents: Vec<WalkDirEntry>,
-    errs: Vec<DirError>,
+    errs: Vec<anyhow::Error>,
 }
 
 impl RecursiveResults {
     /// Return all of the errors encountered during traversal.
-    pub fn errs(&self) -> &[DirError] {
+    pub fn errs(&self) -> &[anyhow::Error] {
         &self.errs
     }
 
@@ -110,7 +110,7 @@ impl Dir {
     /// of directory entries and errors.
     pub fn run_recursive<I>(&self, it: I) -> RecursiveResults
     where
-        I: IntoIterator<Item = result::Result<WalkDirEntry, DirError>>,
+        I: IntoIterator<Item = result::Result<WalkDirEntry, anyhow::Error>>,
     {
         let mut results = RecursiveResults {
             ents: vec![],

@@ -2,7 +2,7 @@ use camino::{Utf8Path, Utf8PathBuf};
 
 use crate::{
     helpers::DirIter,
-    iters::{DirError, WalkDir, WalkDirEntry, WalkDirIter},
+    iters::{WalkDir, WalkDirEntry, WalkDirIter},
 };
 
 use super::{Build, FilterOptions};
@@ -54,7 +54,7 @@ impl DirOptions {
 }
 
 impl IntoIterator for DirOptions {
-    type Item = Result<WalkDirEntry, DirError>;
+    type Item = anyhow::Result<WalkDirEntry>;
     type IntoIter = WalkDirIter;
 
     fn into_iter(self) -> Self::IntoIter {

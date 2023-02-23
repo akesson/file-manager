@@ -1,6 +1,6 @@
-use super::DirError;
-use super::Result;
+use super::{ctx_dent, ctx_depth, ctx_depth_path};
 use super::{WalkDirEntry, WalkDirOptions};
+use anyhow::{anyhow, bail, Context, Result};
 use camino::Utf8Path;
 use camino::Utf8PathBuf;
 use same_file::Handle;
@@ -147,7 +147,7 @@ pub(crate) enum DirList {
     /// [`Option<...>`]: https://doc.rust-lang.org/stable/std/option/enum.Option.html
     Opened {
         depth: usize,
-        it: result::Result<ReadDir, Option<DirError>>,
+        it: result::Result<ReadDir, Option<anyhow::Error>>,
     },
     /// A closed handle.
     ///
@@ -166,8 +166,7 @@ impl Iterator for WalkDirIter {
     fn next(&mut self) -> Option<Result<WalkDirEntry>> {
         if let Some(start) = self.start.take() {
             if self.opts.same_file_system {
-                let result =
-                    super::device_num(&start).map_err(|e| DirError::from_path(0, start.clone(), e));
+                let result = super::device_num(&start).context(ctx_depth_path(0, &start));
                 self.root_device = Some(itry!(result));
             }
             let dent = itry!(WalkDirEntry::from_path(0, start, false));
@@ -251,9 +250,7 @@ impl WalkDirIter {
             // the follow_links setting. When it's disabled, it should report
             // itself as a symlink. When it's enabled, it should always report
             // itself as the target.
-            let md = itry!(fs::metadata(dent.path()).map_err(|err| {
-                DirError::from_path(dent.depth(), dent.path().to_path_buf(), err)
-            }));
+            let md = itry!(fs::metadata(dent.path()).context(ctx_dent(&dent)));
             if md.file_type().is_dir() {
                 itry!(self.push(&dent));
             }
@@ -296,13 +293,8 @@ impl WalkDirIter {
             self.stack_list[self.oldest_opened].close();
         }
         // Open a handle to reading the directory's entries.
-        let rd = fs::read_dir(dent.path()).map_err(|err| {
-            Some(DirError::from_path(
-                self.depth,
-                dent.path().to_path_buf(),
-                err,
-            ))
-        });
+        let rd = fs::read_dir(dent.path())
+            .map_err(|err| Some(anyhow!(err).context(ctx_depth_path(self.depth, dent.path()))));
         let mut list = DirList::Opened {
             depth: self.depth,
             it: rd,
@@ -318,8 +310,7 @@ impl WalkDirIter {
             list = DirList::Closed(entries.into_iter());
         }
         if self.opts.follow_links {
-            let ancestor =
-                Ancestor::new(&dent).map_err(|err| DirError::from_io(self.depth, err))?;
+            let ancestor = Ancestor::new(&dent).context(ctx_depth(self.depth))?;
             self.stack_path.push(ancestor);
         }
         // We push this after stack_path since creating the Ancestor can fail.
@@ -371,26 +362,23 @@ impl WalkDirIter {
     }
 
     fn check_loop<P: AsRef<Utf8Path>>(&self, child: P) -> Result<()> {
-        let hchild = Handle::from_path(&child.as_ref().as_std_path())
-            .map_err(|err| DirError::from_io(self.depth, err))?;
+        let hchild =
+            Handle::from_path(&child.as_ref().as_std_path()).context(ctx_depth(self.depth))?;
         for ancestor in self.stack_path.iter().rev() {
-            let is_same = ancestor
-                .is_same(&hchild)
-                .map_err(|err| DirError::from_io(self.depth, err))?;
+            let is_same = ancestor.is_same(&hchild).context(ctx_depth(self.depth))?;
             if is_same {
-                return Err(DirError::from_loop(
-                    self.depth,
-                    &ancestor.path,
+                bail!(
+                    "File system loop found: {} points to an ancestor {}",
                     child.as_ref(),
-                ));
+                    &ancestor.path,
+                );
             }
         }
         Ok(())
     }
 
     fn is_same_file_system(&mut self, dent: &WalkDirEntry) -> Result<bool> {
-        let dent_device =
-            super::device_num(dent.path()).map_err(|err| DirError::from_entry(dent, err))?;
+        let dent_device = super::device_num(dent.path()).context(ctx_dent(&dent))?;
         Ok(self
             .root_device
             .map(|d| d == dent_device)
@@ -421,7 +409,7 @@ impl Iterator for DirList {
                 Err(ref mut err) => err.take().map(Err),
                 Ok(ref mut rd) => rd.next().map(|r| match r {
                     Ok(r) => WalkDirEntry::from_entry(depth + 1, &r),
-                    Err(err) => Err(DirError::from_io(depth + 1, err)),
+                    Err(err) => Err(err).context(ctx_depth(depth + 1)),
                 }),
             },
         }

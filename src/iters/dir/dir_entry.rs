@@ -1,10 +1,7 @@
+use anyhow::Result;
+use camino::{Utf8Path, Utf8PathBuf};
 use std::fmt;
 use std::fs::{self, FileType};
-
-use camino::{Utf8Path, Utf8PathBuf};
-
-use super::DirError;
-use super::Result;
 
 /// A directory entry.
 ///
@@ -139,12 +136,16 @@ impl WalkDirEntry {
 
     #[cfg(not(windows))]
     fn metadata_internal(&self) -> Result<fs::Metadata> {
+        use anyhow::Context;
+
+        use crate::iters::dir::ctx_dent;
+
         if self.follow_link {
             fs::metadata(&self.path)
         } else {
             fs::symlink_metadata(&self.path)
         }
-        .map_err(|err| DirError::from_entry(self, err))
+        .context(ctx_dent(&self))
     }
 
     /// Return the file type for the file that this entry points to.
@@ -215,11 +216,14 @@ impl WalkDirEntry {
     pub(crate) fn from_entry(depth: usize, ent: &fs::DirEntry) -> Result<WalkDirEntry> {
         use std::os::unix::fs::DirEntryExt;
 
-        let path = Utf8PathBuf::from_path_buf(ent.path()).unwrap();
-        // TODO
-        let ty = ent
-            .file_type()
-            .map_err(|err| DirError::from_path(depth, path.clone(), err))?;
+        use anyhow::{anyhow, Context};
+
+        use crate::iters::dir::ctx_depth_path;
+
+        let path = Utf8PathBuf::from_path_buf(ent.path())
+            .map_err(|p| anyhow!("Invalid UTF-8 path: {:?}", p))?;
+
+        let ty = ent.file_type().context(ctx_depth_path(depth, &path))?;
         Ok(WalkDirEntry {
             path,
             ty: ty,
@@ -262,10 +266,14 @@ impl WalkDirEntry {
     pub(crate) fn from_path(depth: usize, pb: Utf8PathBuf, follow: bool) -> Result<WalkDirEntry> {
         use std::os::unix::fs::MetadataExt;
 
+        use anyhow::Context;
+
+        use crate::iters::dir::ctx_depth_path;
+
         let md = if follow {
-            fs::metadata(&pb).map_err(|err| DirError::from_path(depth, pb.clone(), err))?
+            fs::metadata(&pb).context(ctx_depth_path(depth, &pb))?
         } else {
-            fs::symlink_metadata(&pb).map_err(|err| DirError::from_path(depth, pb.clone(), err))?
+            fs::symlink_metadata(&pb).context(ctx_depth_path(depth, &pb))?
         };
         Ok(WalkDirEntry {
             path: pb,
