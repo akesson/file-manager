@@ -5,10 +5,10 @@ mod dir_entry;
 mod dir_iter;
 mod dir_opts;
 
+pub use crate::dir_iter::{FilterEntry, WalkDirIter};
 use camino::Utf8Path;
 pub use dir_entry::{DirEntryExt, WalkDirEntry};
-pub use dir_iter::{FilterEntry, WalkDirIter};
-pub use dir_opts::{WalkDir, WalkDirOptions};
+pub use dir_opts::WalkDirOptions;
 
 use std::io;
 use std::path::Path;

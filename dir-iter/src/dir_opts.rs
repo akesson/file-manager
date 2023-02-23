@@ -10,13 +10,8 @@ use camino::Utf8PathBuf;
 pub use super::DirEntryExt;
 pub use super::WalkDirEntry;
 
-#[derive(Debug)]
-pub struct WalkDir {
-    opts: WalkDirOptions,
-    root: Utf8PathBuf,
-}
-
 pub struct WalkDirOptions {
+    pub(crate) root: Utf8PathBuf,
     pub(crate) follow_links: bool,
     pub(crate) max_open: usize,
     pub(crate) min_depth: usize,
@@ -47,7 +42,7 @@ impl fmt::Debug for WalkDirOptions {
     }
 }
 
-impl WalkDir {
+impl WalkDirOptions {
     /// Create a builder for a recursive directory iterator starting at the
     /// file path `root`. If `root` is a directory, then it is the first item
     /// yielded by the iterator. If `root` is a file, then it is the first
@@ -56,17 +51,15 @@ impl WalkDir {
     /// `DirEntry` still obeys its documentation with respect to symlinks and
     /// the `follow_links` setting.)
     pub fn new<P: AsRef<Utf8Path>>(root: P) -> Self {
-        WalkDir {
-            opts: WalkDirOptions {
-                follow_links: false,
-                max_open: 10,
-                min_depth: 0,
-                max_depth: ::std::usize::MAX,
-                sorter: None,
-                contents_first: false,
-                same_file_system: false,
-            },
+        Self {
             root: root.as_ref().to_path_buf(),
+            follow_links: false,
+            max_open: 10,
+            min_depth: 0,
+            max_depth: ::std::usize::MAX,
+            sorter: None,
+            contents_first: false,
+            same_file_system: false,
         }
     }
 
@@ -76,9 +69,9 @@ impl WalkDir {
     /// to the `new` function on this type. Its direct descendents have depth
     /// `1`, and their descendents have depth `2`, and so on.
     pub fn min_depth(mut self, depth: usize) -> Self {
-        self.opts.min_depth = depth;
-        if self.opts.min_depth > self.opts.max_depth {
-            self.opts.min_depth = self.opts.max_depth;
+        self.min_depth = depth;
+        if self.min_depth > self.max_depth {
+            self.min_depth = self.max_depth;
         }
         self
     }
@@ -93,9 +86,9 @@ impl WalkDir {
     /// it will actually avoid descending into directories when the depth is
     /// exceeded.
     pub fn max_depth(mut self, depth: usize) -> Self {
-        self.opts.max_depth = depth;
-        if self.opts.max_depth < self.opts.min_depth {
-            self.opts.max_depth = self.opts.min_depth;
+        self.max_depth = depth;
+        if self.max_depth < self.min_depth {
+            self.max_depth = self.min_depth;
         }
         self
     }
@@ -112,7 +105,7 @@ impl WalkDir {
     ///
     /// [`DirEntry`]: struct.DirEntry.html
     pub fn follow_links(mut self, yes: bool) -> Self {
-        self.opts.follow_links = yes;
+        self.follow_links = yes;
         self
     }
 
@@ -145,7 +138,7 @@ impl WalkDir {
         if n == 0 {
             n = 1;
         }
-        self.opts.max_open = n;
+        self.max_open = n;
         self
     }
 
@@ -153,7 +146,7 @@ impl WalkDir {
     where
         F: FnMut(&WalkDirEntry, &WalkDirEntry) -> Ordering + Send + Sync + 'static,
     {
-        self.opts.sorter = Some(Box::new(cmp));
+        self.sorter = Some(Box::new(cmp));
         self
     }
 
@@ -170,7 +163,7 @@ impl WalkDir {
     }
 
     pub fn contents_first(mut self, yes: bool) -> Self {
-        self.opts.contents_first = yes;
+        self.contents_first = yes;
         self
     }
 
@@ -183,19 +176,20 @@ impl WalkDir {
     /// option is used on an unsupported platform, then directory traversal
     /// will immediately return an error and will not yield any entries.
     pub fn same_file_system(mut self, yes: bool) -> Self {
-        self.opts.same_file_system = yes;
+        self.same_file_system = yes;
         self
     }
 }
 
-impl IntoIterator for WalkDir {
+impl IntoIterator for WalkDirOptions {
     type Item = anyhow::Result<WalkDirEntry>;
     type IntoIter = super::WalkDirIter;
 
     fn into_iter(self) -> super::WalkDirIter {
+        let start = self.root.clone();
         super::WalkDirIter {
-            opts: self.opts,
-            start: Some(self.root),
+            opts: self,
+            start: Some(start),
             stack_list: vec![],
             stack_path: vec![],
             oldest_opened: 0,
