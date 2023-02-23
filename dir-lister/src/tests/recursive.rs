@@ -950,9 +950,9 @@ fn same_file_system() {
     assert_eq!(expected, r.sorted_paths());
 
     // ... now follow symlinks and ensure we don't descend into /sys.
-    let wd = DirLister::new(dir.path())
-        .same_file_system(true)
-        .follow_links(true);
+    let mut wd = DirLister::new(dir.path());
+    wd.same_file_system(true);
+    wd.follow_links(true);
     let r = dir.run_recursive(wd);
     r.assert_no_errors();
 

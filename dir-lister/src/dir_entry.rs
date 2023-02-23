@@ -213,7 +213,7 @@ impl DirEntry {
     pub(crate) fn from_entry(depth: usize, ent: &fs::DirEntry) -> Result<DirEntry> {
         use std::os::unix::fs::DirEntryExt;
 
-        use anyhow::{anyhow, Context};
+        use anyhow::anyhow;
 
         let path = Utf8PathBuf::from_path_buf(ent.path())
             .map_err(|p| anyhow!("Invalid UTF-8 path: {:?}", p))?;
@@ -258,8 +258,6 @@ impl DirEntry {
     #[cfg(unix)]
     pub(crate) fn from_path(depth: usize, pb: Utf8PathBuf, follow: bool) -> Result<DirEntry> {
         use std::os::unix::fs::MetadataExt;
-
-        use anyhow::Context;
 
         let md = if follow {
             fs::metadata(&pb).context(ctx_depth_path(depth, &pb))?
