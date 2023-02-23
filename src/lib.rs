@@ -3,6 +3,7 @@ mod build;
 mod dir;
 mod error;
 mod helpers;
+mod iters;
 
 #[cfg(feature = "tempdir")]
 pub use helpers::tempdir::TempDir;
@@ -11,8 +12,8 @@ pub use helpers::tempdir::TempDir;
 pub use camino::{Utf8Path, Utf8PathBuf};
 
 pub use actions::{PathDelete, PathRead, PathResolve, PathWrite};
+pub use dir::*;
 pub use error::FileManagerError;
-
 use helpers::env;
 
 pub type Result<T> = std::result::Result<T, FileManagerError>;

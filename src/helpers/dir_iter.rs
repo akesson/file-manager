@@ -1,24 +1,27 @@
 use anyhow::Context;
 use camino::{Utf8Path, Utf8PathBuf};
-use walkdir::IntoIter;
 
-use crate::{helpers::PathExt, FileManagerError};
+use crate::{
+    helpers::PathExt,
+    iters::{WalkDirEntry, WalkDirIter},
+    FileManagerError,
+};
 
 pub struct DirIter {
     pub(crate) root: Utf8PathBuf,
-    pub(crate) dir_iter: IntoIter,
+    pub(crate) dir_iter: WalkDirIter,
     #[cfg(feature = "glob")]
     pub(crate) filter: super::GlobFilter,
 }
 
 pub struct DirEntry {
-    pub(crate) entry: walkdir::DirEntry,
+    pub(crate) entry: WalkDirEntry,
     pub(crate) path: Utf8PathBuf,
     pub(crate) relative: Utf8PathBuf,
 }
 
 impl DirEntry {
-    fn new(entry: walkdir::DirEntry, root: &Utf8Path) -> anyhow::Result<Self> {
+    fn new(entry: WalkDirEntry, root: &Utf8Path) -> anyhow::Result<Self> {
         let path = entry.path().to_utf8_path_buf()?;
         let relative = path
             .strip_prefix(&root)
@@ -48,7 +51,7 @@ impl DirEntry {
 }
 
 impl std::ops::Deref for DirEntry {
-    type Target = walkdir::DirEntry;
+    type Target = WalkDirEntry;
 
     fn deref(&self) -> &Self::Target {
         &self.entry

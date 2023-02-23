@@ -15,7 +15,7 @@ glob = ["dep:globset"]
 [dependencies]
 camino = "1.1"
 anyhow = "1.0"
-walkdir = "2.3"
+same-file = "1.0.1"
 
 globset = { version = "0.4", optional = true }
 tempfile = { version = "3.3", optional = true }

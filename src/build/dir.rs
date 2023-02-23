@@ -1,6 +1,9 @@
 use camino::{Utf8Path, Utf8PathBuf};
 
-use crate::helpers::DirIter;
+use crate::{
+    helpers::DirIter,
+    iters::{DirError, WalkDir, WalkDirEntry, WalkDirIter},
+};
 
 use super::{Build, FilterOptions};
 
@@ -23,8 +26,8 @@ impl DirOptions {
         }
     }
 
-    pub fn to_walkdir_iter(&self, path: &Utf8Path) -> walkdir::IntoIter {
-        walkdir::WalkDir::new(path)
+    pub fn to_walkdir_iter(&self, path: &Utf8Path) -> WalkDirIter {
+        WalkDir::new(path)
             .max_depth(self.max_depth)
             .min_depth(self.min_depth)
             .follow_links(self.follow_links)
@@ -32,8 +35,8 @@ impl DirOptions {
             .into_iter()
     }
 
-    fn walkdir_iter(&self) -> walkdir::IntoIter {
-        walkdir::WalkDir::new(&self.path)
+    fn walkdir_iter(&self) -> WalkDirIter {
+        WalkDir::new(&self.path)
             .max_depth(self.max_depth)
             .min_depth(self.min_depth)
             .follow_links(self.follow_links)
@@ -51,8 +54,8 @@ impl DirOptions {
 }
 
 impl IntoIterator for DirOptions {
-    type Item = Result<walkdir::DirEntry, walkdir::Error>;
-    type IntoIter = walkdir::IntoIter;
+    type Item = Result<WalkDirEntry, DirError>;
+    type IntoIter = WalkDirIter;
 
     fn into_iter(self) -> Self::IntoIter {
         self.walkdir_iter()
