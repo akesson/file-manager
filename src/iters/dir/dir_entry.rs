@@ -1,7 +1,7 @@
-use std::ffi::OsStr;
 use std::fmt;
 use std::fs::{self, FileType};
-use std::path::{Path, PathBuf};
+
+use camino::{Utf8Path, Utf8PathBuf};
 
 use super::DirError;
 use super::Result;
@@ -37,7 +37,7 @@ pub struct WalkDirEntry {
     /// symbolic link).
     ///
     /// [`fs::ReadDir`]: https://doc.rust-lang.org/stable/std/fs/struct.ReadDir.html
-    path: PathBuf,
+    path: Utf8PathBuf,
     /// The file type. Necessary for recursive iteration, so store it.
     ty: FileType,
     /// Is set when this entry was created from a symbolic link and the user
@@ -74,7 +74,7 @@ impl WalkDirEntry {
     /// [`WalkDir::new`]: struct.WalkDir.html#method.new
     /// [`path_is_symlink`]: struct.DirEntry.html#method.path_is_symlink
     /// [`std::fs::read_link`]: https://doc.rust-lang.org/stable/std/fs/fn.read_link.html
-    pub fn path(&self) -> &Path {
+    pub fn path(&self) -> &Utf8Path {
         &self.path
     }
 
@@ -83,7 +83,7 @@ impl WalkDirEntry {
     /// Analogous to [`path`], but moves ownership of the path.
     ///
     /// [`path`]: struct.DirEntry.html#method.path
-    pub fn into_path(self) -> PathBuf {
+    pub fn into_path(self) -> Utf8PathBuf {
         self.path
     }
 
@@ -163,10 +163,8 @@ impl WalkDirEntry {
     ///
     /// If this entry has no file name (e.g., `/`), then the full path is
     /// returned.
-    pub fn file_name(&self) -> &OsStr {
-        self.path
-            .file_name()
-            .unwrap_or_else(|| self.path.as_os_str())
+    pub fn file_name(&self) -> &str {
+        self.path.file_name().unwrap_or_else(|| self.path.as_str())
     }
 
     /// Returns the depth at which this entry was created relative to the root.
@@ -217,11 +215,13 @@ impl WalkDirEntry {
     pub(crate) fn from_entry(depth: usize, ent: &fs::DirEntry) -> Result<WalkDirEntry> {
         use std::os::unix::fs::DirEntryExt;
 
+        let path = Utf8PathBuf::from_path_buf(ent.path()).unwrap();
+        // TODO
         let ty = ent
             .file_type()
-            .map_err(|err| DirError::from_path(depth, ent.path(), err))?;
+            .map_err(|err| DirError::from_path(depth, path.clone(), err))?;
         Ok(WalkDirEntry {
-            path: ent.path(),
+            path,
             ty: ty,
             follow_link: false,
             depth: depth,
@@ -259,7 +259,7 @@ impl WalkDirEntry {
     }
 
     #[cfg(unix)]
-    pub(crate) fn from_path(depth: usize, pb: PathBuf, follow: bool) -> Result<WalkDirEntry> {
+    pub(crate) fn from_path(depth: usize, pb: Utf8PathBuf, follow: bool) -> Result<WalkDirEntry> {
         use std::os::unix::fs::MetadataExt;
 
         let md = if follow {

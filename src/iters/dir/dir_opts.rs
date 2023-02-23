@@ -3,9 +3,11 @@
 
 use std::cmp::Ordering;
 use std::fmt;
-use std::path::{Path, PathBuf};
 use std::result;
 use std::vec;
+
+use camino::Utf8Path;
+use camino::Utf8PathBuf;
 
 #[cfg(unix)]
 pub use super::DirEntryExt;
@@ -17,7 +19,7 @@ pub type Result<T> = ::std::result::Result<T, DirError>;
 #[derive(Debug)]
 pub struct WalkDir {
     opts: WalkDirOptions,
-    root: PathBuf,
+    root: Utf8PathBuf,
 }
 
 pub struct WalkDirOptions {
@@ -59,7 +61,7 @@ impl WalkDir {
     /// is always followed for the purposes of directory traversal. (A root
     /// `DirEntry` still obeys its documentation with respect to symlinks and
     /// the `follow_links` setting.)
-    pub fn new<P: AsRef<Path>>(root: P) -> Self {
+    pub fn new<P: AsRef<Utf8Path>>(root: P) -> Self {
         WalkDir {
             opts: WalkDirOptions {
                 follow_links: false,

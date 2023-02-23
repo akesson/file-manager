@@ -1,7 +1,9 @@
 use std::error;
 use std::fmt;
 use std::io;
-use std::path::{Path, PathBuf};
+
+use camino::Utf8Path;
+use camino::Utf8PathBuf;
 
 use super::WalkDirEntry;
 
@@ -14,12 +16,12 @@ pub struct DirError {
 #[derive(Debug)]
 enum ErrorInner {
     Io {
-        path: Option<PathBuf>,
+        path: Option<Utf8PathBuf>,
         err: io::Error,
     },
     Loop {
-        ancestor: PathBuf,
-        child: PathBuf,
+        ancestor: Utf8PathBuf,
+        child: Utf8PathBuf,
     },
 }
 
@@ -30,7 +32,7 @@ impl DirError {
     /// the error will include the path passed to [`std::fs::read_dir`].
     ///
     /// [`std::fs::read_dir`]: https://doc.rust-lang.org/stable/std/fs/fn.read_dir.html
-    pub fn path(&self) -> Option<&Path> {
+    pub fn path(&self) -> Option<&Utf8Path> {
         match self.inner {
             ErrorInner::Io { path: None, .. } => None,
             ErrorInner::Io {
@@ -53,7 +55,7 @@ impl DirError {
     ///
     /// [`None`]: https://doc.rust-lang.org/stable/std/option/enum.Option.html#variant.None
     /// [`path`]: struct.Error.html#path
-    pub fn loop_ancestor(&self) -> Option<&Path> {
+    pub fn loop_ancestor(&self) -> Option<&Utf8Path> {
         match self.inner {
             ErrorInner::Loop { ref ancestor, .. } => Some(ancestor),
             _ => None,
@@ -91,7 +93,7 @@ impl DirError {
         }
     }
 
-    pub(crate) fn from_path(depth: usize, pb: PathBuf, err: io::Error) -> Self {
+    pub(crate) fn from_path(depth: usize, pb: Utf8PathBuf, err: io::Error) -> Self {
         DirError {
             depth: depth,
             inner: ErrorInner::Io {
@@ -121,7 +123,7 @@ impl DirError {
         }
     }
 
-    pub(crate) fn from_loop(depth: usize, ancestor: &Path, child: &Path) -> Self {
+    pub(crate) fn from_loop(depth: usize, ancestor: &Utf8Path, child: &Utf8Path) -> Self {
         DirError {
             depth: depth,
             inner: ErrorInner::Loop {
@@ -163,16 +165,14 @@ impl fmt::Display for DirError {
             ErrorInner::Io {
                 path: Some(ref path),
                 ref err,
-            } => write!(f, "IO error for operation on {}: {}", path.display(), err),
+            } => write!(f, "IO error for operation on {path}: {}", err),
             ErrorInner::Loop {
                 ref ancestor,
                 ref child,
             } => write!(
                 f,
                 "File system loop found: \
-                 {} points to an ancestor {}",
-                child.display(),
-                ancestor.display()
+                 {child} points to an ancestor {ancestor}",
             ),
         }
     }

@@ -1,5 +1,6 @@
 use std::fs;
-use std::path::PathBuf;
+
+use camino::Utf8PathBuf;
 
 use super::super::WalkDir;
 use super::util::Dir;
@@ -209,7 +210,7 @@ fn many_mixed() {
 
 #[test]
 fn nested() {
-    let nested = PathBuf::from("a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y/z");
+    let nested = Utf8PathBuf::from("a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y/z");
     let dir = Dir::tmp();
     dir.mkdirp(&nested);
     dir.touch(nested.join("A"));
@@ -253,7 +254,7 @@ fn nested() {
 
 #[test]
 fn nested_small_max_open() {
-    let nested = PathBuf::from("a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y/z");
+    let nested = Utf8PathBuf::from("a/b/c/d/e/f/g/h/i/j/k/l/m/n/o/p/q/r/s/t/u/v/w/x/y/z");
     let dir = Dir::tmp();
     dir.mkdirp(&nested);
     dir.touch(nested.join("A"));

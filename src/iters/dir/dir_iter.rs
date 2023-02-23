@@ -1,12 +1,13 @@
 use super::DirError;
 use super::Result;
 use super::{WalkDirEntry, WalkDirOptions};
+use camino::Utf8Path;
+use camino::Utf8PathBuf;
 use same_file::Handle;
 use std::cmp::min;
 use std::cmp::Ordering;
 use std::fs;
 use std::fs::ReadDir;
-use std::path::{Path, PathBuf};
 use std::{io, result, vec};
 
 /// Like try, but for iterators that return [`Option<Result<_, _>>`].
@@ -40,7 +41,7 @@ pub struct WalkDirIter {
     ///
     /// This is only `Some(...)` at the beginning. After the first iteration,
     /// this is always `None`.
-    pub(crate) start: Option<PathBuf>,
+    pub(crate) start: Option<Utf8PathBuf>,
     /// A stack of open (up to max fd) or closed handles to directories.
     /// An open handle is a plain [`fs::ReadDir`] while a closed handle is
     /// a `Vec<fs::DirEntry>` corresponding to the as-of-yet consumed entries.
@@ -80,7 +81,7 @@ pub struct WalkDirIter {
 #[derive(Debug)]
 pub(crate) struct Ancestor {
     /// The path of this ancestor.
-    path: PathBuf,
+    path: Utf8PathBuf,
     /// An open file to this ancesor. This is only used on Windows where
     /// opening a file handle appears to be quite expensive, so we choose to
     /// cache it. This comes at the cost of not respecting the file descriptor
@@ -369,8 +370,9 @@ impl WalkDirIter {
         Ok(dent)
     }
 
-    fn check_loop<P: AsRef<Path>>(&self, child: P) -> Result<()> {
-        let hchild = Handle::from_path(&child).map_err(|err| DirError::from_io(self.depth, err))?;
+    fn check_loop<P: AsRef<Utf8Path>>(&self, child: P) -> Result<()> {
+        let hchild = Handle::from_path(&child.as_ref().as_std_path())
+            .map_err(|err| DirError::from_io(self.depth, err))?;
         for ancestor in self.stack_path.iter().rev() {
             let is_same = ancestor
                 .is_same(&hchild)

@@ -5,6 +5,11 @@ use std::io;
 use std::path::{Path, PathBuf};
 use std::result;
 
+use camino::Utf8Path;
+use camino::Utf8PathBuf;
+
+use crate::helpers::Utf8PathBufExt;
+
 use super::super::{DirError, WalkDirEntry};
 
 /// Create an error from a format!-like syntax.
@@ -49,7 +54,7 @@ impl RecursiveResults {
     /// Return all paths from all successfully retrieved directory entries.
     ///
     /// This does not include paths that correspond to an error.
-    pub fn paths(&self) -> Vec<PathBuf> {
+    pub fn paths(&self) -> Vec<Utf8PathBuf> {
         self.ents.iter().map(|d| d.path().to_path_buf()).collect()
     }
 
@@ -65,7 +70,7 @@ impl RecursiveResults {
     /// sorted lexicographically.
     ///
     /// This does not include paths that correspond to an error.
-    pub fn sorted_paths(&self) -> Vec<PathBuf> {
+    pub fn sorted_paths(&self) -> Vec<Utf8PathBuf> {
         self.sorted_ents()
             .into_iter()
             .map(|d| d.into_path())
@@ -79,23 +84,25 @@ impl RecursiveResults {
 /// relative to this directory.
 #[derive(Debug)]
 pub struct Dir {
-    dir: TempDir,
+    _dir: TempDir,
+    root: Utf8PathBuf,
 }
 
 impl Dir {
     /// Create a new empty temporary directory.
     pub fn tmp() -> Dir {
         let dir = TempDir::new().unwrap();
-        Dir { dir }
+        let root = Utf8PathBuf::from_path(dir.path()).unwrap();
+        Dir { _dir: dir, root }
     }
 
     /// Return the path to this directory.
-    pub fn path(&self) -> &Path {
-        self.dir.path()
+    pub fn path(&self) -> &Utf8Path {
+        self.root.as_path()
     }
 
     /// Return a path joined to the path to this directory.
-    pub fn join<P: AsRef<Path>>(&self, path: P) -> PathBuf {
+    pub fn join<P: AsRef<Utf8Path>>(&self, path: P) -> Utf8PathBuf {
         self.path().join(path)
     }
 
@@ -120,32 +127,32 @@ impl Dir {
 
     /// Create a directory at the given path, while creating all intermediate
     /// directories as needed.
-    pub fn mkdirp<P: AsRef<Path>>(&self, path: P) {
+    pub fn mkdirp<P: AsRef<Utf8Path>>(&self, path: P) {
         let full = self.join(path);
         fs::create_dir_all(&full)
-            .map_err(|e| err!("failed to create directory {}: {}", full.display(), e))
+            .map_err(|e| err!("failed to create directory {}: {}", full, e))
             .unwrap();
     }
 
     /// Create an empty file at the given path. All ancestor directories must
     /// already exists.
-    pub fn touch<P: AsRef<Path>>(&self, path: P) {
+    pub fn touch<P: AsRef<Utf8Path>>(&self, path: P) {
         let full = self.join(path);
         File::create(&full)
-            .map_err(|e| err!("failed to create file {}: {}", full.display(), e))
+            .map_err(|e| err!("failed to create file {}: {}", full, e))
             .unwrap();
     }
 
     /// Create empty files at the given paths. All ancestor directories must
     /// already exists.
-    pub fn touch_all<P: AsRef<Path>>(&self, paths: &[P]) {
+    pub fn touch_all<P: AsRef<Utf8Path>>(&self, paths: &[P]) {
         for p in paths {
             self.touch(p);
         }
     }
 
     /// Create a file symlink to the given src with the given link name.
-    pub fn symlink_file<P1: AsRef<Path>, P2: AsRef<Path>>(&self, src: P1, link_name: P2) {
+    pub fn symlink_file<P1: AsRef<Utf8Path>, P2: AsRef<Utf8Path>>(&self, src: P1, link_name: P2) {
         #[cfg(windows)]
         fn imp(src: &Path, link_name: &Path) -> io::Result<()> {
             use std::os::windows::fs::symlink_file;
@@ -153,7 +160,7 @@ impl Dir {
         }
 
         #[cfg(unix)]
-        fn imp(src: &Path, link_name: &Path) -> io::Result<()> {
+        fn imp(src: &Utf8Path, link_name: &Utf8Path) -> io::Result<()> {
             use std::os::unix::fs::symlink;
             symlink(src, link_name)
         }
@@ -163,8 +170,8 @@ impl Dir {
             .map_err(|e| {
                 err!(
                     "failed to symlink file {} with target {}: {}",
-                    src.display(),
-                    link_name.display(),
+                    src,
+                    link_name,
                     e
                 )
             })
@@ -172,7 +179,7 @@ impl Dir {
     }
 
     /// Create a directory symlink to the given src with the given link name.
-    pub fn symlink_dir<P1: AsRef<Path>, P2: AsRef<Path>>(&self, src: P1, link_name: P2) {
+    pub fn symlink_dir<P1: AsRef<Utf8Path>, P2: AsRef<Utf8Path>>(&self, src: P1, link_name: P2) {
         #[cfg(windows)]
         fn imp(src: &Path, link_name: &Path) -> io::Result<()> {
             use std::os::windows::fs::symlink_dir;
@@ -180,7 +187,7 @@ impl Dir {
         }
 
         #[cfg(unix)]
-        fn imp(src: &Path, link_name: &Path) -> io::Result<()> {
+        fn imp(src: &Utf8Path, link_name: &Utf8Path) -> io::Result<()> {
             use std::os::unix::fs::symlink;
             symlink(src, link_name)
         }
@@ -190,8 +197,8 @@ impl Dir {
             .map_err(|e| {
                 err!(
                     "failed to symlink directory {} with target {}: {}",
-                    src.display(),
-                    link_name.display(),
+                    src,
+                    link_name,
                     e
                 )
             })

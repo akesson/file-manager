@@ -2,7 +2,6 @@ use anyhow::Context;
 use camino::{Utf8Path, Utf8PathBuf};
 
 use crate::{
-    helpers::PathExt,
     iters::{WalkDirEntry, WalkDirIter},
     FileManagerError,
 };
@@ -22,7 +21,7 @@ pub struct DirEntry {
 
 impl DirEntry {
     fn new(entry: WalkDirEntry, root: &Utf8Path) -> anyhow::Result<Self> {
-        let path = entry.path().to_utf8_path_buf()?;
+        let path = entry.path().to_path_buf();
         let relative = path
             .strip_prefix(&root)
             .context(format!(
