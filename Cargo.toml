@@ -1,5 +1,5 @@
 [workspace]
-members = ["dir-iter"]
+members = ["dir-lister"]
 # file-manager is temporarily excluded from the workspace
 # until dir-iter is finished
 exclude = ["file-manager"]
