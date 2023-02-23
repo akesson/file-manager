@@ -1,5 +1,5 @@
 use super::{ctx_dent, ctx_depth, ctx_depth_path};
-use super::{DirLister, WalkDirEntry};
+use super::{DirEntry, DirLister};
 use anyhow::{anyhow, bail, Context, Result};
 use camino::Utf8Path;
 use camino::Utf8PathBuf;
@@ -66,7 +66,7 @@ pub struct DirIter {
     /// A list of DirEntries corresponding to directories, that are
     /// yielded after their contents has been fully yielded. This is only
     /// used when `contents_first` is enabled.
-    pub(crate) deferred_dirs: Vec<WalkDirEntry>,
+    pub(crate) deferred_dirs: Vec<DirEntry>,
     /// The device of the root file path when the first call to `next` was
     /// made.
     ///
@@ -93,7 +93,7 @@ pub(crate) struct Ancestor {
 impl Ancestor {
     /// Create a new ancestor from the given directory path.
     #[cfg(windows)]
-    fn new(dent: &WalkDirEntry) -> io::Result<Ancestor> {
+    fn new(dent: &DirEntry) -> io::Result<Ancestor> {
         let handle = Handle::from_path(dent.path())?;
         Ok(Ancestor {
             path: dent.path().to_path_buf(),
@@ -103,7 +103,7 @@ impl Ancestor {
 
     /// Create a new ancestor from the given directory path.
     #[cfg(not(windows))]
-    fn new(dent: &WalkDirEntry) -> io::Result<Ancestor> {
+    fn new(dent: &DirEntry) -> io::Result<Ancestor> {
         Ok(Ancestor {
             path: dent.path().to_path_buf(),
         })
@@ -152,24 +152,24 @@ pub(crate) enum DirList {
     /// A closed handle.
     ///
     /// All remaining directory entries are read into memory.
-    Closed(vec::IntoIter<Result<WalkDirEntry>>),
+    Closed(vec::IntoIter<Result<DirEntry>>),
 }
 
 impl Iterator for DirIter {
-    type Item = Result<WalkDirEntry>;
+    type Item = Result<DirEntry>;
     /// Advances the iterator and returns the next value.
     ///
     /// # Errors
     ///
     /// If the iterator fails to retrieve the next value, this method returns
     /// an error value. The error will be wrapped in an Option::Some.
-    fn next(&mut self) -> Option<Result<WalkDirEntry>> {
+    fn next(&mut self) -> Option<Result<DirEntry>> {
         if let Some(start) = self.start.take() {
             if self.opts.same_file_system {
                 let result = super::device_num(&start).context(ctx_depth_path(0, &start));
                 self.root_device = Some(itry!(result));
             }
-            let dent = itry!(WalkDirEntry::from_path(0, start, false));
+            let dent = itry!(DirEntry::from_path(0, start, false));
             if let Some(result) = self.handle_entry(dent) {
                 return Some(result);
             }
@@ -221,7 +221,7 @@ impl DirIter {
 
     pub fn filter_entry<P>(self, predicate: P) -> FilterEntry<Self, P>
     where
-        P: FnMut(&WalkDirEntry) -> bool,
+        P: FnMut(&DirEntry) -> bool,
     {
         FilterEntry {
             it: self,
@@ -229,7 +229,7 @@ impl DirIter {
         }
     }
 
-    fn handle_entry(&mut self, mut dent: WalkDirEntry) -> Option<Result<WalkDirEntry>> {
+    fn handle_entry(&mut self, mut dent: DirEntry) -> Option<Result<DirEntry>> {
         if self.opts.follow_links && dent.file_type().is_symlink() {
             dent = itry!(self.follow(dent));
         }
@@ -265,12 +265,12 @@ impl DirIter {
         }
     }
 
-    fn get_deferred_dir(&mut self) -> Option<WalkDirEntry> {
+    fn get_deferred_dir(&mut self) -> Option<DirEntry> {
         if self.opts.contents_first {
             if self.depth < self.deferred_dirs.len() {
                 // Unwrap is safe here because we've guaranteed that
                 // `self.deferred_dirs.len()` can never be less than 1
-                let deferred: WalkDirEntry = self
+                let deferred: DirEntry = self
                     .deferred_dirs
                     .pop()
                     .expect("BUG: deferred_dirs should be non-empty");
@@ -282,7 +282,7 @@ impl DirIter {
         None
     }
 
-    fn push(&mut self, dent: &WalkDirEntry) -> Result<()> {
+    fn push(&mut self, dent: &DirEntry) -> Result<()> {
         // Make room for another open file descriptor if we've hit the max.
         let free = self
             .stack_list
@@ -350,8 +350,8 @@ impl DirIter {
         self.oldest_opened = min(self.oldest_opened, self.stack_list.len());
     }
 
-    fn follow(&self, mut dent: WalkDirEntry) -> Result<WalkDirEntry> {
-        dent = WalkDirEntry::from_path(self.depth, dent.path().to_path_buf(), true)?;
+    fn follow(&self, mut dent: DirEntry) -> Result<DirEntry> {
+        dent = DirEntry::from_path(self.depth, dent.path().to_path_buf(), true)?;
         // The only way a symlink can cause a loop is if it points
         // to a directory. Otherwise, it always points to a leaf
         // and we can omit any loop checks.
@@ -377,7 +377,7 @@ impl DirIter {
         Ok(())
     }
 
-    fn is_same_file_system(&mut self, dent: &WalkDirEntry) -> Result<bool> {
+    fn is_same_file_system(&mut self, dent: &DirEntry) -> Result<bool> {
         let dent_device = super::device_num(dent.path()).context(ctx_dent(&dent))?;
         Ok(self
             .root_device
@@ -399,16 +399,16 @@ impl DirList {
 }
 
 impl Iterator for DirList {
-    type Item = Result<WalkDirEntry>;
+    type Item = Result<DirEntry>;
 
     #[inline(always)]
-    fn next(&mut self) -> Option<Result<WalkDirEntry>> {
+    fn next(&mut self) -> Option<Result<DirEntry>> {
         match *self {
             DirList::Closed(ref mut it) => it.next(),
             DirList::Opened { depth, ref mut it } => match *it {
                 Err(ref mut err) => err.take().map(Err),
                 Ok(ref mut rd) => rd.next().map(|r| match r {
-                    Ok(r) => WalkDirEntry::from_entry(depth + 1, &r),
+                    Ok(r) => DirEntry::from_entry(depth + 1, &r),
                     Err(err) => Err(err).context(ctx_depth(depth + 1)),
                 }),
             },
@@ -445,9 +445,9 @@ pub struct FilterEntry<I, P> {
 
 impl<P> Iterator for FilterEntry<DirIter, P>
 where
-    P: FnMut(&WalkDirEntry) -> bool,
+    P: FnMut(&DirEntry) -> bool,
 {
-    type Item = Result<WalkDirEntry>;
+    type Item = Result<DirEntry>;
 
     /// Advances the iterator and returns the next value.
     ///
@@ -455,7 +455,7 @@ where
     ///
     /// If the iterator fails to retrieve the next value, this method returns
     /// an error value. The error will be wrapped in an `Option::Some`.
-    fn next(&mut self) -> Option<Result<WalkDirEntry>> {
+    fn next(&mut self) -> Option<Result<DirEntry>> {
         loop {
             let dent = match self.it.next() {
                 None => return None,
@@ -474,7 +474,7 @@ where
 
 impl<P> FilterEntry<DirIter, P>
 where
-    P: FnMut(&WalkDirEntry) -> bool,
+    P: FnMut(&DirEntry) -> bool,
 {
     pub fn filter_entry(self, predicate: P) -> FilterEntry<Self, P> {
         FilterEntry {

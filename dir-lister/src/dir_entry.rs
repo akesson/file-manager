@@ -30,7 +30,7 @@ use std::fs::{self, FileType};
 /// [`file_name`]: #method.file_name
 /// [`follow_links`]: struct.WalkDir.html#method.follow_links
 /// [`DirEntryExt`]: trait.DirEntryExt.html
-pub struct WalkDirEntry {
+pub struct DirEntry {
     /// The path as reported by the [`fs::ReadDir`] iterator (even if it's a
     /// symbolic link).
     ///
@@ -56,7 +56,7 @@ pub struct WalkDirEntry {
     metadata: fs::Metadata,
 }
 
-impl WalkDirEntry {
+impl DirEntry {
     /// The full path that this entry represents.
     ///
     /// The full path is created by joining the parents of this entry up to the
@@ -196,7 +196,7 @@ impl WalkDirEntry {
     }
 
     #[cfg(windows)]
-    pub(crate) fn from_entry(depth: usize, ent: &fs::DirEntry) -> Result<WalkDirEntry> {
+    pub(crate) fn from_entry(depth: usize, ent: &fs::DirEntry) -> Result<DirEntry> {
         let path = ent.path();
         let ty = ent
             .file_type()
@@ -204,7 +204,7 @@ impl WalkDirEntry {
         let md = ent
             .metadata()
             .context(ctx_depth_path(depth, path.clone()))?;
-        Ok(WalkDirEntry {
+        Ok(DirEntry {
             path: path,
             ty: ty,
             follow_link: false,
@@ -214,7 +214,7 @@ impl WalkDirEntry {
     }
 
     #[cfg(unix)]
-    pub(crate) fn from_entry(depth: usize, ent: &fs::DirEntry) -> Result<WalkDirEntry> {
+    pub(crate) fn from_entry(depth: usize, ent: &fs::DirEntry) -> Result<DirEntry> {
         use std::os::unix::fs::DirEntryExt;
 
         use anyhow::{anyhow, Context};
@@ -223,7 +223,7 @@ impl WalkDirEntry {
             .map_err(|p| anyhow!("Invalid UTF-8 path: {:?}", p))?;
 
         let ty = ent.file_type().context(ctx_depth_path(depth, &path))?;
-        Ok(WalkDirEntry {
+        Ok(DirEntry {
             path,
             ty: ty,
             follow_link: false,
@@ -233,9 +233,9 @@ impl WalkDirEntry {
     }
 
     #[cfg(not(any(unix, windows)))]
-    pub(crate) fn from_entry(depth: usize, ent: &fs::DirEntry) -> Result<WalkDirEntry> {
+    pub(crate) fn from_entry(depth: usize, ent: &fs::DirEntry) -> Result<DirEntry> {
         let ty = ent.file_type().context(ctx_depth_path(depth, ent.path()))?;
-        Ok(WalkDirEntry {
+        Ok(DirEntry {
             path: ent.path(),
             ty: ty,
             follow_link: false,
@@ -244,7 +244,7 @@ impl WalkDirEntry {
     }
 
     #[cfg(windows)]
-    pub(crate) fn from_path(depth: usize, pb: Utf8PathBuf, follow: bool) -> Result<WalkDirEntry> {
+    pub(crate) fn from_path(depth: usize, pb: Utf8PathBuf, follow: bool) -> Result<DirEntry> {
         use crate::ctx_depth_path;
 
         let md = if follow {
@@ -252,7 +252,7 @@ impl WalkDirEntry {
         } else {
             fs::symlink_metadata(&pb).context(ctx_depth_path(depth, pb.clone()))?
         };
-        Ok(WalkDirEntry {
+        Ok(DirEntry {
             path: pb,
             ty: md.file_type(),
             follow_link: follow,
@@ -262,7 +262,7 @@ impl WalkDirEntry {
     }
 
     #[cfg(unix)]
-    pub(crate) fn from_path(depth: usize, pb: Utf8PathBuf, follow: bool) -> Result<WalkDirEntry> {
+    pub(crate) fn from_path(depth: usize, pb: Utf8PathBuf, follow: bool) -> Result<DirEntry> {
         use std::os::unix::fs::MetadataExt;
 
         use anyhow::Context;
@@ -272,7 +272,7 @@ impl WalkDirEntry {
         } else {
             fs::symlink_metadata(&pb).context(ctx_depth_path(depth, &pb))?
         };
-        Ok(WalkDirEntry {
+        Ok(DirEntry {
             path: pb,
             ty: md.file_type(),
             follow_link: follow,
@@ -282,13 +282,13 @@ impl WalkDirEntry {
     }
 
     #[cfg(not(any(unix, windows)))]
-    pub(crate) fn from_path(depth: usize, pb: Utf8PathBuf, follow: bool) -> Result<WalkDirEntry> {
+    pub(crate) fn from_path(depth: usize, pb: Utf8PathBuf, follow: bool) -> Result<DirEntry> {
         let md = if follow {
             fs::metadata(&pb)..context(ctx_depth_path(depth, pb.clone()))?;
         } else {
             fs::symlink_metadata(&pb).context(ctx_depth_path(depth, path.clone()))?;
         };
-        Ok(WalkDirEntry {
+        Ok(DirEntry {
             path: pb,
             ty: md.file_type(),
             follow_link: follow,
@@ -297,10 +297,10 @@ impl WalkDirEntry {
     }
 }
 
-impl Clone for WalkDirEntry {
+impl Clone for DirEntry {
     #[cfg(windows)]
-    fn clone(&self) -> WalkDirEntry {
-        WalkDirEntry {
+    fn clone(&self) -> DirEntry {
+        DirEntry {
             path: self.path.clone(),
             ty: self.ty,
             follow_link: self.follow_link,
@@ -310,8 +310,8 @@ impl Clone for WalkDirEntry {
     }
 
     #[cfg(unix)]
-    fn clone(&self) -> WalkDirEntry {
-        WalkDirEntry {
+    fn clone(&self) -> DirEntry {
+        DirEntry {
             path: self.path.clone(),
             ty: self.ty,
             follow_link: self.follow_link,
@@ -321,8 +321,8 @@ impl Clone for WalkDirEntry {
     }
 
     #[cfg(not(any(unix, windows)))]
-    fn clone(&self) -> WalkDirEntry {
-        WalkDirEntry {
+    fn clone(&self) -> DirEntry {
+        DirEntry {
             path: self.path.clone(),
             ty: self.ty,
             follow_link: self.follow_link,
@@ -331,7 +331,7 @@ impl Clone for WalkDirEntry {
     }
 }
 
-impl fmt::Debug for WalkDirEntry {
+impl fmt::Debug for DirEntry {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "DirEntry({:?})", self.path)
     }
@@ -346,7 +346,7 @@ pub trait DirEntryExt {
 }
 
 #[cfg(unix)]
-impl DirEntryExt for WalkDirEntry {
+impl DirEntryExt for DirEntry {
     /// Returns the underlying `d_ino` field in the contained `dirent`
     /// structure.
     fn ino(&self) -> u64 {

@@ -6,9 +6,9 @@ use std::vec;
 use camino::Utf8Path;
 use camino::Utf8PathBuf;
 
+pub use super::DirEntry;
 #[cfg(unix)]
 pub use super::DirEntryExt;
-pub use super::WalkDirEntry;
 
 pub struct DirLister {
     pub(crate) root: Utf8PathBuf,
@@ -17,7 +17,7 @@ pub struct DirLister {
     pub(crate) min_depth: usize,
     pub(crate) max_depth: usize,
     pub(crate) sorter:
-        Option<Box<dyn FnMut(&WalkDirEntry, &WalkDirEntry) -> Ordering + Send + Sync + 'static>>,
+        Option<Box<dyn FnMut(&DirEntry, &DirEntry) -> Ordering + Send + Sync + 'static>>,
     pub(crate) contents_first: bool,
     pub(crate) same_file_system: bool,
 }
@@ -144,7 +144,7 @@ impl DirLister {
 
     pub fn sort_by<F>(mut self, cmp: F) -> Self
     where
-        F: FnMut(&WalkDirEntry, &WalkDirEntry) -> Ordering + Send + Sync + 'static,
+        F: FnMut(&DirEntry, &DirEntry) -> Ordering + Send + Sync + 'static,
     {
         self.sorter = Some(Box::new(cmp));
         self
@@ -152,7 +152,7 @@ impl DirLister {
 
     pub fn sort_by_key<K, F>(self, mut cmp: F) -> Self
     where
-        F: FnMut(&WalkDirEntry) -> K + Send + Sync + 'static,
+        F: FnMut(&DirEntry) -> K + Send + Sync + 'static,
         K: Ord,
     {
         self.sort_by(move |a, b| cmp(a).cmp(&cmp(b)))
@@ -182,7 +182,7 @@ impl DirLister {
 }
 
 impl IntoIterator for DirLister {
-    type Item = anyhow::Result<WalkDirEntry>;
+    type Item = anyhow::Result<DirEntry>;
     type IntoIter = super::DirIter;
 
     fn into_iter(self) -> super::DirIter {

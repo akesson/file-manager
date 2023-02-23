@@ -5,7 +5,7 @@ mod dir_entry;
 mod dir_iter;
 mod dir_lister;
 
-pub use crate::dir_entry::{DirEntryExt, WalkDirEntry};
+pub use crate::dir_entry::{DirEntry, DirEntryExt};
 pub use crate::dir_iter::{DirIter, FilterEntry};
 pub use crate::dir_lister::DirLister;
 use camino::Utf8Path;
@@ -43,6 +43,6 @@ fn ctx_depth_path(depth: usize, path: impl AsRef<Utf8Path>) -> String {
     format!("error at depth {} for: {}", depth, path.as_ref())
 }
 
-fn ctx_dent(dent: &WalkDirEntry) -> String {
+fn ctx_dent(dent: &DirEntry) -> String {
     format!("error at depth {} for: {}", dent.depth(), dent.path())
 }
